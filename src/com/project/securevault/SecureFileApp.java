@@ -1,5 +1,9 @@
 package com.project.securevault;
 
+/* --- IMPORTS ---
+ * Includes libraries for the FlatLaf theme, Java Swing UI components,
+ * file handling, and utility collections like Map and List.
+ */
 import com.formdev.flatlaf.FlatDarkLaf;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -12,46 +16,52 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-/**
- * INTEGRATION FILE (MEMBER 4)
- * This file connects the UI, Hashing, Crypto, and Logging.
- * UPDATED: Implements Brute Force Mitigation (Throttling + Account Lockout).
- */
-
 public class SecureFileApp extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPanel;
 
-    // Services
+    /* --- CORE SERVICES ---
+     * Instances of service classes that handle authentication logic,
+     * cryptographic operations (AES), and database interactions.
+     */
     private AuthService authService = new AuthService();
     private CryptoService cryptoService = new CryptoService();
     private DatabaseManager dbManager = new DatabaseManager();
 
-    // Security State (Brute Force Mitigation)
+    /* --- SECURITY STATE ---
+     * Manages brute-force protection by tracking failed login attempts
+     * and calculating lockout durations for specific usernames.
+     */
     private Map<String, Integer> failedAttempts = new HashMap<>();
     private Map<String, Long> lockoutExpiry = new HashMap<>();
     private static final int MAX_ATTEMPTS = 10;
     private static final long LOCKOUT_DURATION = 10 * 60 * 1000; // 10 minutes
 
-    // Session State
+    /* --- SESSION & UI FIELDS ---
+     * Stores data for the currently logged-in user and references
+     * to UI components like text fields and tables.
+     */
     private String currentUser;
     private String currentPassword;
     private String currentSalt;
 
-    // UI Fields
     private JTextField loginUsernameField, regUsernameField;
     private JPasswordField loginPasswordField, regPasswordField, regConfirmPasswordField;
+    private JButton registerButton;
     private JLabel statusLabel;
     private File selectedFile;
 
-    // Table Components
     private DefaultTableModel tableModel;
     private JTable activityTable;
 
+    /* --- CONSTRUCTOR ---
+     * Sets up the main window (JFrame), initializes the database,
+     * and assembles the CardLayout containing Login, Register, and Dashboard.
+     */
     public SecureFileApp() {
         dbManager.setup();
         setTitle("Aegis Vault - Secure File Manager");
-        setSize(600, 650);
+        setSize(600, 700);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -61,7 +71,6 @@ public class SecureFileApp extends JFrame {
         } catch (Exception e) {
             System.err.println("Icon not found, using default Java icon.");
         }
-
 
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
@@ -74,6 +83,10 @@ public class SecureFileApp extends JFrame {
         cardLayout.show(mainPanel, "LOGIN");
     }
 
+    /* --- AUTHENTICATION LOGIC ---
+     * Methods to handle login verification, user registration,
+     * session clearing, and logout procedures.
+     */
     private void clearSession() {
         currentUser = null;
         currentPassword = null;
@@ -92,69 +105,58 @@ public class SecureFileApp extends JFrame {
     }
 
     private void handleLogin() {
-        String user = loginUsernameField.getText().trim();
+        String rawUser = loginUsernameField.getText().trim();
         String pass = new String(loginPasswordField.getPassword());
 
-        if (user.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter a username.");
-            return;
-        }
+        if (rawUser.isEmpty() || pass.isEmpty()) return;
 
-        // 1. SECURITY CHECK: Is the user currently locked out?
+        String userKey = rawUser.toLowerCase();
+
         long currentTime = System.currentTimeMillis();
-        if (lockoutExpiry.containsKey(user) && currentTime < lockoutExpiry.get(user)) {
-            long remainingMillis = lockoutExpiry.get(user) - currentTime;
-            long remainingMinutes = (remainingMillis / 1000) / 60;
-            if (remainingMinutes == 0) remainingMinutes = 1; // Round up to 1
-
-            JOptionPane.showMessageDialog(this,
-                    "Too many failed attempts. Account is locked. Please try again in " + remainingMinutes + " minute(s).");
+        if (lockoutExpiry.containsKey(userKey) && currentTime < lockoutExpiry.get(userKey)) {
+            long remainingMillis = lockoutExpiry.get(userKey) - currentTime;
+            long remainingMinutes = Math.max(1, (remainingMillis / 1000) / 60);
+            JOptionPane.showMessageDialog(this, "Account locked. Try again in " + remainingMinutes + " minute(s).");
             return;
         }
 
         try {
-            String[] creds = dbManager.getUserCredentials(user);
-            if (creds != null && authService.verify(pass, creds[0], creds[1])) {
-                // SUCCESS: Reset security tracking for this user
-                failedAttempts.remove(user);
-                lockoutExpiry.remove(user);
+            String[] creds = dbManager.getUserCredentials(rawUser);
 
-                this.currentUser = user;
+            if (creds == null) {
+                JOptionPane.showMessageDialog(this, "User not found.");
+                return;
+            }
+
+            boolean isMatch = authService.verify(pass, creds[0], creds[1]);
+
+            if (isMatch) {
+                failedAttempts.remove(userKey);
+                lockoutExpiry.remove(userKey);
+
+                this.currentUser = rawUser;
                 this.currentPassword = pass;
                 this.currentSalt = creds[1];
 
-                AuditLogger.log(user, "LOGIN_SUCCESS");
-
-                // Load activity history on successful login
+                AuditLogger.log(rawUser, "LOGIN_SUCCESS");
                 refreshActivityTable();
                 cardLayout.show(mainPanel, "DASHBOARD");
             } else {
-                // FAILURE: Increment attempts and handle security penalties
-                AuditLogger.log(user, "LOGIN_FAILED");
-
-                int attempts = failedAttempts.getOrDefault(user, 0) + 1;
-                failedAttempts.put(user, attempts);
+                int attempts = failedAttempts.getOrDefault(userKey, 0) + 1;
+                failedAttempts.put(userKey, attempts);
+                AuditLogger.log(rawUser, "LOGIN_FAILED");
 
                 if (attempts >= MAX_ATTEMPTS) {
-                    // Trigger 10-minute lockout
-                    lockoutExpiry.put(user, currentTime + LOCKOUT_DURATION);
-                    JOptionPane.showMessageDialog(this, "Maximum attempts reached. Account locked for 10 minutes.");
+                    lockoutExpiry.put(userKey, currentTime + LOCKOUT_DURATION);
+                    JOptionPane.showMessageDialog(this, "Maximum attempts reached. Account locked.");
                 } else {
-                    // Login Throttling: Enforce a 2-second delay to slow down automated scripts
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                    }
-
                     int remaining = MAX_ATTEMPTS - attempts;
-                    JOptionPane.showMessageDialog(this, "Invalid credentials. " + remaining + " attempts remaining.");
+                    JOptionPane.showMessageDialog(this, "Invalid Password! " + remaining + " attempts left.");
                 }
-
                 loginPasswordField.setText("");
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error during login process.");
+            e.printStackTrace();
         }
     }
 
@@ -167,6 +169,19 @@ public class SecureFileApp extends JFrame {
             JOptionPane.showMessageDialog(this, "Fields cannot be empty.");
             return;
         }
+
+        // --- SECURITY CHECKS ---
+        if (pass.length() <= 12) {
+            JOptionPane.showMessageDialog(this, "Password must be more than 12 characters long.");
+            return;
+        }
+
+        String complexityRegex = "^(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>]).*$";
+        if (!pass.matches(complexityRegex)) {
+            JOptionPane.showMessageDialog(this, "Password must contain at least one number and one special character.");
+            return;
+        }
+
         if (!pass.equals(confirm)) {
             JOptionPane.showMessageDialog(this, "Passwords do not match.");
             return;
@@ -193,6 +208,9 @@ public class SecureFileApp extends JFrame {
         cardLayout.show(mainPanel, "LOGIN");
     }
 
+    /* --- FILE OPERATIONS ---
+     * Interacts with CryptoService to perform encryption and decryption.
+     */
     private void handleEncryption() {
         if (selectedFile == null) return;
         try {
@@ -221,73 +239,63 @@ public class SecureFileApp extends JFrame {
         }
     }
 
-    //  UI Layout Methods
-
+    /* --- UI LAYOUT METHODS ---
+     * Methods using GridBagLayout and BorderLayout to build the app's interface.
+     */
     private JPanel createLoginPanel() {
-        // 1. Create a container panel with a modern background color
         JPanel container = new JPanel(new GridBagLayout());
-        container.setBorder(new EmptyBorder(40, 40, 40, 40)); // Adds "breathable" space
+        container.setBorder(new EmptyBorder(40, 40, 40, 40));
 
-        // 2. Create the login card (a sub-panel to give a "card" look)
         JPanel card = new JPanel(new GridBagLayout());
-        card.putClientProperty("FlatLaf.style", "arc: 20"); // Rounds the corners of the panel
+        card.putClientProperty("FlatLaf.style", "arc: 20");
         card.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         GridBagConstraints g = new GridBagConstraints();
         g.insets = new Insets(10, 10, 10, 10);
         g.fill = GridBagConstraints.HORIZONTAL;
 
-        // Title Label
         JLabel title = new JLabel("Welcome Back");
         title.setFont(new Font("SansSerif", Font.BOLD, 22));
         g.gridx = 0; g.gridy = 0; g.gridwidth = 2;
         g.anchor = GridBagConstraints.CENTER;
         card.add(title, g);
 
-        // Username Field with Placeholder
         loginUsernameField = new JTextField(15);
-        loginUsernameField.putClientProperty("JTextField.placeholderText", "Enter your username");
-        loginUsernameField.putClientProperty("JTextField.showClearButton", true);
-        g.gridy = 1; g.gridwidth = 2;
-        card.add(new JLabel("Username"), g);
-        g.gridy = 2;
-        card.add(loginUsernameField, g);
+        loginUsernameField.putClientProperty("JTextField.placeholderText", "Username");
+        g.gridy = 1; card.add(new JLabel("Username"), g);
+        g.gridy = 2; card.add(loginUsernameField, g);
 
-        // Password Field with Placeholder
         loginPasswordField = new JPasswordField(15);
-        loginPasswordField.putClientProperty("JTextField.placeholderText", "Enter your password");
-        loginPasswordField.putClientProperty("NoSelectedTextColor", true); // Modern selection look
-        g.gridy = 3;
-        card.add(new JLabel("Password"), g);
-        g.gridy = 4;
-        card.add(loginPasswordField, g);
+        loginPasswordField.putClientProperty("JTextField.placeholderText", "Password");
+        g.gridy = 3; card.add(new JLabel("Password"), g);
+        g.gridy = 4; card.add(loginPasswordField, g);
 
-        // Login Button with custom style
+        // --- PASSWORD VISIBILITY TOGGLE ---
+        JCheckBox showPass = new JCheckBox("Show Password");
+        showPass.addActionListener(e -> {
+            if (showPass.isSelected()) {
+                loginPasswordField.setEchoChar((char) 0);
+            } else {
+                loginPasswordField.setEchoChar('•');
+            }
+        });
+        g.gridy = 5; card.add(showPass, g);
+
         JButton btn = new JButton("Login");
-        btn.putClientProperty("JButton.buttonType", "roundRect"); // Rounded edges
-        btn.setBackground(new Color(52, 152, 219)); // Modern Blue
+        btn.setBackground(new Color(52, 152, 219));
         btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.addActionListener(e -> handleLogin()); // Connects to existing logic
+        btn.addActionListener(e -> handleLogin());
+        g.gridy = 6; card.add(btn, g);
 
-        g.gridy = 5; g.insets = new Insets(20, 10, 5, 10);
-        card.add(btn, g);
-
-        // Register Button (Styled as a link or secondary button)
-        JButton reg = new JButton("Don't have an account? Register");
-        reg.setBorderPainted(false);
-        reg.setContentAreaFilled(false);
-        reg.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        reg.setForeground(new Color(150, 150, 150));
-        reg.addActionListener(e -> cardLayout.show(mainPanel, "REGISTER"));
-
-        g.gridy = 6; g.insets = new Insets(0, 10, 10, 10);
-        card.add(reg, g);
+        registerButton = new JButton("Register");
+        registerButton.addActionListener(e -> cardLayout.show(mainPanel, "REGISTER"));
+        g.gridy = 7; card.add(registerButton, g);
 
         container.add(card);
         return container;
     }
 
+    /* --- REGISTRATION PANEL WITH DYNAMIC REQUIREMENTS --- */
     private JPanel createRegisterPanel() {
         JPanel container = new JPanel(new GridBagLayout());
         container.setBorder(new EmptyBorder(40, 40, 40, 40));
@@ -300,68 +308,100 @@ public class SecureFileApp extends JFrame {
         g.insets = new Insets(8, 10, 8, 10);
         g.fill = GridBagConstraints.HORIZONTAL;
 
-        // Title
         JLabel title = new JLabel("Create Account");
         title.setFont(new Font("SansSerif", Font.BOLD, 22));
         g.gridx = 0; g.gridy = 0; g.gridwidth = 2;
-        g.anchor = GridBagConstraints.CENTER;
         card.add(title, g);
 
-        // Fields with placeholders
+        // --- REQUIREMENT TEXT BOX ---
+        // This text stays visible so the user knows exactly what to type.
+        JLabel reqText = new JLabel("<html><body style='width: 250px; color: #E74C3C;'>" +
+                "<b>Password Requirements:</b><br>" +
+                "• More than 12 characters<br>" +
+                "• At least one number (0-9)<br>" +
+                "• At least one special character (!@#$%^&*)</body></html>");
+        g.gridy = 1; card.add(reqText, g);
+
         regUsernameField = new JTextField(15);
-        regUsernameField.putClientProperty("JTextField.placeholderText", "Choose a username");
-
         regPasswordField = new JPasswordField(15);
-        regPasswordField.putClientProperty("JTextField.placeholderText", "Create password");
-
         regConfirmPasswordField = new JPasswordField(15);
-        regConfirmPasswordField.putClientProperty("JTextField.placeholderText", "Confirm password");
 
-        g.gridwidth = 2;
-        g.gridy = 1; card.add(new JLabel("Username"), g);
-        g.gridy = 2; card.add(regUsernameField, g);
-        g.gridy = 3; card.add(new JLabel("Password"), g);
-        g.gridy = 4; card.add(regPasswordField, g);
-        g.gridy = 5; card.add(new JLabel("Confirm Password"), g);
-        g.gridy = 6; card.add(regConfirmPasswordField, g);
+        // --- REAL-TIME CHECKER ---
+        // This listener changes the requirement text color to green when satisfied.
+        regPasswordField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { check(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { check(); }
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { check(); }
 
-        // Register Button
+            private void check() {
+                String p = new String(regPasswordField.getPassword());
+                String regex = "^(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>]).*$";
+                if (p.length() > 12 && p.matches(regex)) {
+                    reqText.setText("<html><body style='width: 250px; color: #2ECC71;'>" +
+                            "<b>Password Requirements:</b> (Requirement Met!)<br>" +
+                            "• More than 12 characters<br>" +
+                            "• At least one number (0-9)<br>" +
+                            "• At least one special character (!@#$%^&*)</body></html>");
+                } else {
+                    reqText.setText("<html><body style='width: 250px; color: #E74C3C;'>" +
+                            "<b>Password Requirements:</b><br>" +
+                            "• More than 12 characters<br>" +
+                            "• At least one number (0-9)<br>" +
+                            "• At least one special character (!@#$%^&*)</body></html>");
+                }
+            }
+        });
+
+        g.gridy = 2; card.add(new JLabel("Username"), g);
+        g.gridy = 3; card.add(regUsernameField, g);
+        g.gridy = 4; card.add(new JLabel("Password"), g);
+        g.gridy = 5; card.add(regPasswordField, g);
+        g.gridy = 6; card.add(new JLabel("Confirm Password"), g);
+        g.gridy = 7; card.add(regConfirmPasswordField, g);
+
+        // Visibility Toggle
+        JCheckBox showPass = new JCheckBox("Show Passwords");
+        showPass.addActionListener(e -> {
+            char echo = showPass.isSelected() ? (char) 0 : '•';
+            regPasswordField.setEchoChar(echo);
+            regConfirmPasswordField.setEchoChar(echo);
+        });
+        g.gridy = 8; card.add(showPass, g);
+
         JButton btn = new JButton("Register");
-        btn.putClientProperty("JButton.buttonType", "roundRect");
-        btn.setBackground(new Color(46, 204, 113)); // Modern Green
+        btn.setBackground(new Color(46, 204, 113));
         btn.setForeground(Color.WHITE);
         btn.addActionListener(e -> handleRegistration());
-        g.gridy = 7; g.insets = new Insets(20, 10, 5, 10);
-        card.add(btn, g);
+        g.gridy = 9; card.add(btn, g);
 
-        // Back Button
-        JButton back = new JButton("Already have an account? Login");
-        back.setBorderPainted(false);
-        back.setContentAreaFilled(false);
-        back.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        JButton back = new JButton("Back to Login");
         back.addActionListener(e -> cardLayout.show(mainPanel, "LOGIN"));
-        g.gridy = 8; g.insets = new Insets(0, 10, 10, 10);
-        card.add(back, g);
+        g.gridy = 10; card.add(back, g);
 
         container.add(card);
         return container;
     }
 
+    /* --- DASHBOARD PANEL ---
+     * Constructs the main user interface for logged-in users,
+     * including the header with the About and Logout buttons.
+     */
     private JPanel createDashboardPanel() {
         JPanel container = new JPanel(new BorderLayout(20, 20));
         container.setBorder(new EmptyBorder(30, 30, 30, 30));
 
-        //
+        // Header Section
         JPanel header = new JPanel(new BorderLayout());
         JLabel welcomeLabel = new JLabel("Aegis Vault Dashboard");
         welcomeLabel.setFont(new Font("SansSerif", Font.BOLD, 24));
         header.add(welcomeLabel, BorderLayout.WEST);
 
+        // Header Buttons (About & Logout)
         JPanel navActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
 
         JButton aboutBtn = new JButton("About");
         aboutBtn.putClientProperty("JButton.buttonType", "roundRect");
-        aboutBtn.addActionListener(e -> showAboutDialog()); // Triggers the method above
+        aboutBtn.addActionListener(e -> showAboutDialog()); // Triggers the About Dialog
 
         JButton logout = new JButton("Logout");
         logout.putClientProperty("JButton.buttonType", "roundRect");
@@ -371,6 +411,8 @@ public class SecureFileApp extends JFrame {
         navActions.add(logout);
         header.add(navActions, BorderLayout.EAST);
 
+        // Main Center Area (File Controls)
+        JPanel mainCenter = new JPanel(new BorderLayout(0, 20));
         JPanel card = new JPanel(new GridBagLayout());
         card.putClientProperty("FlatLaf.style", "arc: 20");
         card.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -383,11 +425,16 @@ public class SecureFileApp extends JFrame {
         JButton enc = new JButton("Encrypt File");
         JButton dec = new JButton("Decrypt File");
 
-        // Styling Buttons
         sel.putClientProperty("JButton.buttonType", "roundRect");
-        enc.setBackground(new Color(231, 76, 60)); // Red for Encrypt (Action)
+
+        // Red for Encryption
+        enc.putClientProperty("JButton.buttonType", "roundRect");
+        enc.setBackground(new Color(231, 76, 60));
         enc.setForeground(Color.WHITE);
-        dec.setBackground(new Color(52, 152, 219)); // Blue for Decrypt
+
+        // Blue for Decryption
+        dec.putClientProperty("JButton.buttonType", "roundRect");
+        dec.setBackground(new Color(52, 152, 219));
         dec.setForeground(Color.WHITE);
 
         sel.addActionListener(e -> {
@@ -399,7 +446,6 @@ public class SecureFileApp extends JFrame {
             }
         });
 
-        // Updated action listeners to refresh table
         enc.addActionListener(e -> { handleEncryption(); refreshActivityTable(); });
         dec.addActionListener(e -> { handleDecryption(); refreshActivityTable(); });
 
@@ -412,16 +458,15 @@ public class SecureFileApp extends JFrame {
         g.gridy = 2; g.gridwidth = 1; card.add(enc, g);
         g.gridx = 1; card.add(dec, g);
 
-        // Bottom Section: Recent Activity Table
+        // Activity Table
         String[] columns = {"Timestamp", "Action"};
         tableModel = new DefaultTableModel(columns, 0);
         activityTable = new JTable(tableModel);
-        activityTable.setEnabled(false); // Make read-only
+        activityTable.setEnabled(false);
         JScrollPane scrollPane = new JScrollPane(activityTable);
         scrollPane.setPreferredSize(new Dimension(400, 150));
         scrollPane.setBorder(BorderFactory.createTitledBorder("Recent Activity"));
 
-        JPanel mainCenter = new JPanel(new BorderLayout(0, 20));
         mainCenter.add(card, BorderLayout.NORTH);
         mainCenter.add(scrollPane, BorderLayout.CENTER);
 
@@ -431,36 +476,34 @@ public class SecureFileApp extends JFrame {
         return container;
     }
 
+    /* --- UTILITY METHODS --- */
     private void refreshActivityTable() {
-        tableModel.setRowCount(0); // Clear existing rows
+        tableModel.setRowCount(0);
         File logFile = new File("audit_log.txt");
         if (!logFile.exists()) return;
-
         try (Scanner scanner = new Scanner(logFile)) {
             List<String> lines = new ArrayList<>();
-            while (scanner.hasNextLine()) {
-                lines.add(scanner.nextLine());
-            }
-            // Show only the last 5 actions
+            while (scanner.hasNextLine()) lines.add(scanner.nextLine());
             int start = Math.max(0, lines.size() - 5);
             for (int i = lines.size() - 1; i >= start; i--) {
                 String[] parts = lines.get(i).split(" \\| ");
                 if (parts.length >= 3) {
-                    // Display Timestamp and Action (skipping Username for privacy)
                     tableModel.addRow(new Object[]{parts[0].substring(0, 19), parts[2].replace("Action: ", "")});
                 }
             }
-        } catch (Exception e) {
-            // Ignore log file errors
-        }
+        } catch (Exception e) {}
     }
 
+    /* --- ABOUT DIALOG ---
+     * Displays a styled information dialog showing system version
+     * and the underlying security protocols.
+     */
     private void showAboutDialog() {
-        String message = "<html><body style='width: 250px;'>" +
-                "<h2>Aegis Vault v1.0</h2>" +
+        String message = "<html><body style='width: 300px; padding: 10px;'>" +
+                "<h2 style='color: #3498db;'>Aegis Vault v1.0</h2>" +
                 "<p>A secure file management system designed for maximum privacy.</p><br>" +
                 "<b>Security Protocols:</b>" +
-                "<ul>" +
+                "<ul style='margin-left: 20px;'>" +
                 "<li><b>Encryption:</b> AES-256 (CBC Mode)</li>" +
                 "<li><b>Key Derivation:</b> PBKDF2 with HMAC-SHA256</li>" +
                 "<li><b>Password Hashing:</b> SHA-256 with 16-byte Salt</li>" +
@@ -469,22 +512,11 @@ public class SecureFileApp extends JFrame {
         JOptionPane.showMessageDialog(this, message, "About Aegis Vault", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    //main method
+    /* --- MAIN ENTRY POINT --- */
     public static void main(String[] args) {
         try {
-            // This line tells the app to use the modern FlatLaf theme
             com.formdev.flatlaf.FlatDarkLaf.setup();
-
-            // These optional lines make components like text fields and buttons rounded
-            javax.swing.UIManager.put("Button.arc", 15);
-            javax.swing.UIManager.put("Component.arc", 15);
-            javax.swing.UIManager.put("TextComponent.arc", 15);
-
-        } catch (Exception ex) {
-            System.err.println("Failed to initialize FlatLaf: " + ex.getMessage());
-        }
-
-        // Launch the application as usual
+        } catch (Exception ex) {}
         javax.swing.SwingUtilities.invokeLater(() -> new SecureFileApp().setVisible(true));
     }
 }

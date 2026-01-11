@@ -1,29 +1,27 @@
 package com.project.securevault;
 
 import java.security.MessageDigest;
-import java.security.SecureRandom;
 import java.util.Base64;
 
 public class AuthService {
 
-    // Generates a random 16-byte salt
+    /* --- SALT GENERATION --- */
     public String generateSalt() {
-        SecureRandom random = new SecureRandom();
-        byte[] salt = new byte[16];
-        random.nextBytes(salt);
-        return Base64.getEncoder().encodeToString(salt);
+        return Base64.getEncoder().encodeToString(new java.security.SecureRandom().generateSeed(16));
     }
 
-    // Hashes password + salt using SHA-256
+    /* --- PASSWORD HASHING --- */
     public String hashPassword(String password, String salt) throws Exception {
+        if (password == null || salt == null) return "EMPTY";
         String combined = password + salt;
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] hash = md.digest(combined.getBytes("UTF-8"));
         return Base64.getEncoder().encodeToString(hash);
     }
 
-    // Verifies if input matches stored data
+    /* --- AUTHENTICATION VERIFICATION --- */
     public boolean verify(String inputPass, String storedHash, String storedSalt) throws Exception {
+        if (inputPass == null || storedHash == null || storedSalt == null) return false;
         String newHash = hashPassword(inputPass, storedSalt);
         return newHash.equals(storedHash);
     }

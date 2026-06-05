@@ -1,0 +1,884 @@
+
+Ocom.project.securevault.SecureFileApp#createRegisterPanel()Ljavax/swing/JPanel;b
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java´ ´(&"1*åÄ
+1
+¨& ¨(9DB
+
+¨* ¨(7
+%0java.awt.GridBagLayout"java.awt.GridBagLayoutr
+p
+
+¨& ¨(9
+%1" java.awt.GridBagLayout#<init>()V*:
+
+__unknown_file (
+
+%0java.awt.GridBagLayout<:
+
+¨ ¨(%
+%2javax.swing.JPanel"javax.swing.JPanelø
+º
+
+¨ ¨(:
+%3"4javax.swing.JPanel#<init>(Ljava/awt/LayoutManager;)V*6
+
+__unknown_file (
+
+%2javax.swing.JPanel*:
+
+__unknown_file (
+
+%0java.awt.GridBagLayoutm
+k
+
+¨ ¨(;
+	containerjavax.swing.JPanel"__id*6
+
+__unknown_file (
+
+%2javax.swing.JPanelTR
+
+≠  ≠(+$
+%4javax.swing.border.EmptyBorder"javax.swing.border.EmptyBorderè
+å
+
+≠ ≠(;
+%5",javax.swing.border.EmptyBorder#<init>(IIII)V*B
+
+__unknown_file (&
+$
+%4javax.swing.border.EmptyBorder* 
+
+__unknown_file (2(* 
+
+__unknown_file (2(* 
+
+__unknown_file (2(* 
+
+__unknown_file (2(ÜÉ
+
+≠ ≠(<
+
+%6void">javax.swing.JComponent#setBorder(Ljavax/swing/border/Border;)V*=
+
+__unknown_file (!
+
+	containerjavax.swing.JPanel*B
+
+__unknown_file (&
+$
+%4javax.swing.border.EmptyBorder2&setBorder(Ljavax/swing/border/Border;)DB
+
+Ø% Ø(2
+%7java.awt.GridBagLayout"java.awt.GridBagLayoutr
+p
+
+Ø! Ø(4
+%8" java.awt.GridBagLayout#<init>()V*:
+
+__unknown_file (
+
+%7java.awt.GridBagLayout<:
+
+Ø Ø( 
+%9javax.swing.JPanel"javax.swing.JPanel¿
+Ω
+
+Ø Ø(5
+%10"4javax.swing.JPanel#<init>(Ljava/awt/LayoutManager;)V*6
+
+__unknown_file (
+
+%9javax.swing.JPanel*:
+
+__unknown_file (
+
+%7java.awt.GridBagLayouth
+f
+
+Ø Ø(6
+cardjavax.swing.JPanel"__id*6
+
+__unknown_file (
+
+%9javax.swing.JPanel∏µ
+
+∞ ∞(:
+%11void"Ojavax.swing.JComponent#putClientProperty(Ljava/lang/Object;Ljava/lang/Object;)V*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel*-
+
+__unknown_file (
+FlatLaf.style*'
+
+__unknown_file (	
+arc: 2027putClientProperty(Ljava/lang/Object;Ljava/lang/Object;)US
+
+± ±(&%
+%12javax.swing.border.EmptyBorder"javax.swing.border.EmptyBorderë
+é
+
+± ±(6
+%13",javax.swing.border.EmptyBorder#<init>(IIII)V*C
+
+__unknown_file ('
+%
+%12javax.swing.border.EmptyBorder* 
+
+__unknown_file (2* 
+
+__unknown_file (2* 
+
+__unknown_file (2* 
+
+__unknown_file (2ÉÄ
+
+± ±(7
+%14void">javax.swing.JComponent#setBorder(Ljavax/swing/border/Border;)V*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel*C
+
+__unknown_file ('
+%
+%12javax.swing.border.EmptyBorder2&setBorder(Ljavax/swing/border/Border;)OM
+
+≥# ≥(5"
+%15java.awt.GridBagConstraints"java.awt.GridBagConstraints~
+|
+
+≥ ≥(7
+%16"%java.awt.GridBagConstraints#<init>()V*@
+
+__unknown_file ($
+"
+%15java.awt.GridBagConstraintsx
+v
+
+≥ ≥(8 
+gjava.awt.GridBagConstraints"__id*@
+
+__unknown_file ($
+"
+%15java.awt.GridBagConstraints75
+
+¥ ¥(
+%17java.awt.Insets"java.awt.InsetsÛ
+
+
+¥ ¥(+
+%18"java.awt.Insets#<init>(IIII)V*4
+
+__unknown_file (
+
+%17java.awt.Insets* 
+
+__unknown_file (2* 
+
+__unknown_file (2
+* 
+
+__unknown_file (2* 
+
+__unknown_file (2
+x
+v
+
+¥ ¥(+,
+ 
+gjava.awt.GridBagConstraints"
+insets"__id*4
+
+__unknown_file (
+
+%17java.awt.Insets=;
+
+∑ ∑(!
+%19javax.swing.JLabel"javax.swing.JLabelØ
+¨
+
+∑ ∑(3
+%20".javax.swing.JLabel#<init>(Ljava/lang/String;)V*7
+
+__unknown_file (
+
+%19javax.swing.JLabel*.
+
+__unknown_file (
+Create Accountj
+h
+
+∑ ∑(4
+titlejavax.swing.JLabel"__id*7
+
+__unknown_file (
+
+%19javax.swing.JLabelD
+B
+
+∏, ∏(5
+
+%21int"__id*"
+
+__unknown_file (
+""31
+
+∏ ∏(
+%22java.awt.Font"java.awt.FontÓ
+Î
+
+∏ ∏(:
+%23"+java.awt.Font#<init>(Ljava/lang/String;II)V*2
+
+__unknown_file (
+
+%22java.awt.Font*)
+
+__unknown_file (
+	SansSerif*(
+
+__unknown_file (
+
+
+%21int* 
+
+__unknown_file (2◊‘
+
+∏ ∏(;
+%24void"0javax.swing.JComponent#setFont(Ljava/awt/Font;)V*9
+
+__unknown_file (
+
+titlejavax.swing.JLabel*2
+
+__unknown_file (
+
+%22java.awt.Font2setFont(Ljava/awt/Font;)øº
+
+∫ ∫(
+%25void"?java.awt.Container#add(Ljava/awt/Component;Ljava/lang/Object;)V*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel*9
+
+__unknown_file (
+
+titlejavax.swing.JLabel*>
+
+__unknown_file ("
+ 
+gjava.awt.GridBagConstraints2+add(Ljava/awt/Component;Ljava/lang/Object;)≠
+™
+
+æ$ ø(3
+%26java.lang.String"__concat*D
+
+æ$ æ(X64
+2<html><body style='width: 250px; color: #E74C3C;'>*3
+
+ø ø(3%#
+!<b>Password Requirements:</b><br>é
+ã
+
+æ$ ¿(/
+%27java.lang.String"__concat*'
+
+æ$ ø(3
+
+%26java.lang.String*1
+
+¿ ¿(/#!
+‚Ä¢ More than 12 characters<br>ê
+ç
+
+æ$ ¡(1
+%28java.lang.String"__concat*'
+
+æ$ ¿(/
+
+%27java.lang.String*3
+
+¡ ¡(1%#
+!‚Ä¢ At least one number (0-9)<br>™
+ß
+
+æ$ ¬(K
+%29java.lang.String"__concat*'
+
+æ$ ¡(1
+
+%28java.lang.String*M
+
+¬ ¬(K?=
+;‚Ä¢ At least one special character (!@#$%^&*)</body></html>=;
+
+æ æ(#
+%30javax.swing.JLabel"javax.swing.JLabel∂
+≥
+
+æ ¬(L
+%31".javax.swing.JLabel#<init>(Ljava/lang/String;)V*7
+
+__unknown_file (
+
+%30javax.swing.JLabel*5
+
+__unknown_file (
+
+%29java.lang.Stringl
+j
+
+æ ¬(M
+reqTextjavax.swing.JLabel"__id*7
+
+__unknown_file (
+
+%30javax.swing.JLabel¡æ
+
+√ √()
+%32void"?java.awt.Container#add(Ljava/awt/Component;Ljava/lang/Object;)V*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel*;
+
+__unknown_file (
+
+reqTextjavax.swing.JLabel*>
+
+__unknown_file ("
+ 
+gjava.awt.GridBagConstraints2+add(Ljava/awt/Component;Ljava/lang/Object;)EC
+
+≈ ≈()
+%33javax.swing.JTextField"javax.swing.JTextFieldò
+ï
+
+≈ ≈(-
+%34"!javax.swing.JTextField#<init>(I)V*;
+
+__unknown_file (
+
+%33javax.swing.JTextField* 
+
+__unknown_file (2ë
+é
+
+≈ ≈(-='
+%com.project.securevault.SecureFileApp"
+regUsernameField"__id*;
+
+__unknown_file (
+
+%33javax.swing.JTextFieldMK
+
+∆ ∆(-!
+%35javax.swing.JPasswordField"javax.swing.JPasswordField†
+ù
+
+∆ ∆(1
+%36"%javax.swing.JPasswordField#<init>(I)V*?
+
+__unknown_file (#
+!
+%35javax.swing.JPasswordField* 
+
+__unknown_file (2ï
+í
+
+∆ ∆(1='
+%com.project.securevault.SecureFileApp"
+regPasswordField"__id*?
+
+__unknown_file (#
+!
+%35javax.swing.JPasswordFieldMK
+
+«& «(4!
+%37javax.swing.JPasswordField"javax.swing.JPasswordField†
+ù
+
+«" «(8
+%38"%javax.swing.JPasswordField#<init>(I)V*?
+
+__unknown_file (#
+!
+%37javax.swing.JPasswordField* 
+
+__unknown_file (2ú
+ô
+
+« «(8D'
+%com.project.securevault.SecureFileApp"
+regConfirmPasswordField"__id*?
+
+__unknown_file (#
+!
+%37javax.swing.JPasswordFieldï
+í
+
+À À(!
+%39javax.swing.JPasswordField"__id*[
+
+__unknown_file (?*='
+%com.project.securevault.SecureFileApp"
+regPasswordFieldÀ»
+
+À À(& 
+%40javax.swing.text.Document"Hjavax.swing.text.JTextComponent#getDocument()Ljavax/swing/text/Document;*?
+
+__unknown_file (#
+!
+%39javax.swing.JPasswordField2getDocument()ge
+
+À? À(a.
+%41'com.project.securevault.SecureFileApp$1"'com.project.securevault.SecureFileApp$1
+}
+
+À; ·(	
+%42"java.lang.Object#<init>()V*L
+
+__unknown_file (0
+.
+%41'com.project.securevault.SecureFileApp$1ª∏
+
+À ·(
+
+%43void"Tjavax.swing.text.Document#addDocumentListener(Ljavax/swing/event/DocumentListener;)V*>
+
+__unknown_file ("
+ 
+%40javax.swing.text.Document*L
+
+__unknown_file (0
+.
+%41'com.project.securevault.SecureFileApp$129addDocumentListener(Ljavax/swing/event/DocumentListener;)=;
+
+„" „((
+%44javax.swing.JLabel"javax.swing.JLabel©
+¶
+
+„ „(4
+%45".javax.swing.JLabel#<init>(Ljava/lang/String;)V*7
+
+__unknown_file (
+
+%44javax.swing.JLabel*(
+
+__unknown_file (
+
+UsernameΩ∫
+
+„ „(8
+%46void"?java.awt.Container#add(Ljava/awt/Component;Ljava/lang/Object;)V*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel*7
+
+__unknown_file (
+
+%44javax.swing.JLabel*>
+
+__unknown_file ("
+ 
+gjava.awt.GridBagConstraints2+add(Ljava/awt/Component;Ljava/lang/Object;)ë
+é
+
+‰ ‰(.
+%47javax.swing.JTextField"__id*[
+
+__unknown_file (?*='
+%com.project.securevault.SecureFileApp"
+regUsernameField¡æ
+
+‰ ‰(2
+%48void"?java.awt.Container#add(Ljava/awt/Component;Ljava/lang/Object;)V*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel*;
+
+__unknown_file (
+
+%47javax.swing.JTextField*>
+
+__unknown_file ("
+ 
+gjava.awt.GridBagConstraints2+add(Ljava/awt/Component;Ljava/lang/Object;)=;
+
+Â" Â((
+%49javax.swing.JLabel"javax.swing.JLabel©
+¶
+
+Â Â(4
+%50".javax.swing.JLabel#<init>(Ljava/lang/String;)V*7
+
+__unknown_file (
+
+%49javax.swing.JLabel*(
+
+__unknown_file (
+
+PasswordΩ∫
+
+Â Â(8
+%51void"?java.awt.Container#add(Ljava/awt/Component;Ljava/lang/Object;)V*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel*7
+
+__unknown_file (
+
+%49javax.swing.JLabel*>
+
+__unknown_file ("
+ 
+gjava.awt.GridBagConstraints2+add(Ljava/awt/Component;Ljava/lang/Object;)ï
+í
+
+Ê Ê(.!
+%52javax.swing.JPasswordField"__id*[
+
+__unknown_file (?*='
+%com.project.securevault.SecureFileApp"
+regPasswordField≈¬
+
+Ê Ê(2
+%53void"?java.awt.Container#add(Ljava/awt/Component;Ljava/lang/Object;)V*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel*?
+
+__unknown_file (#
+!
+%52javax.swing.JPasswordField*>
+
+__unknown_file ("
+ 
+gjava.awt.GridBagConstraints2+add(Ljava/awt/Component;Ljava/lang/Object;)=;
+
+Á" Á((
+%54javax.swing.JLabel"javax.swing.JLabel±
+Æ
+
+Á Á(<
+%55".javax.swing.JLabel#<init>(Ljava/lang/String;)V*7
+
+__unknown_file (
+
+%54javax.swing.JLabel*0
+
+__unknown_file (
+Confirm PasswordΩ∫
+
+Á Á(@
+%56void"?java.awt.Container#add(Ljava/awt/Component;Ljava/lang/Object;)V*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel*7
+
+__unknown_file (
+
+%54javax.swing.JLabel*>
+
+__unknown_file ("
+ 
+gjava.awt.GridBagConstraints2+add(Ljava/awt/Component;Ljava/lang/Object;)ú
+ô
+
+Ë Ë(5!
+%57javax.swing.JPasswordField"__id*b
+
+__unknown_file (F*D'
+%com.project.securevault.SecureFileApp"
+regConfirmPasswordField≈¬
+
+Ë Ë(9
+%58void"?java.awt.Container#add(Ljava/awt/Component;Ljava/lang/Object;)V*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel*?
+
+__unknown_file (#
+!
+%57javax.swing.JPasswordField*>
+
+__unknown_file ("
+ 
+gjava.awt.GridBagConstraints2+add(Ljava/awt/Component;Ljava/lang/Object;)CA
+
+Î! Î(*
+%59javax.swing.JCheckBox"javax.swing.JCheckBoxµ
+≤
+
+Î Î(<
+%60"1javax.swing.JCheckBox#<init>(Ljava/lang/String;)V*:
+
+__unknown_file (
+
+%59javax.swing.JCheckBox*.
+
+__unknown_file (
+Show Passwordss
+q
+
+Î Î(=!
+showPassjavax.swing.JCheckBox"__id*:
+
+__unknown_file (
+
+%59javax.swing.JCheckBox†
+ù
+
+Ï# (	$
+%61java.awt.event.ActionListener"__declareFunction*V
+
+__unknown_file (:8
+6__sonar_lambda_3$com.project.securevault.SecureFileAppò
+ï
+
+__unknown_file (2
+$
+%61java.awt.event.ActionListener"
+
+showPass"__id*?
+
+__unknown_file (#
+!
+showPassjavax.swing.JCheckBox®
+•
+
+__unknown_file (<
+$
+%61java.awt.event.ActionListener"
+SecureFileApp.this"__id*E
+
+__unknown_file ()'
+%com.project.securevault.SecureFileApp•¢
+
+Ï (
+
+%70void"Njavax.swing.AbstractButton#addActionListener(Ljava/awt/event/ActionListener;)V*?
+
+__unknown_file (#
+!
+showPassjavax.swing.JCheckBox*B
+
+__unknown_file (&
+$
+%61java.awt.event.ActionListener22addActionListener(Ljava/awt/event/ActionListener;)≈¬
+
+Ò Ò(*
+%71void"?java.awt.Container#add(Ljava/awt/Component;Ljava/lang/Object;)V*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel*?
+
+__unknown_file (#
+!
+showPassjavax.swing.JCheckBox*>
+
+__unknown_file ("
+ 
+gjava.awt.GridBagConstraints2+add(Ljava/awt/Component;Ljava/lang/Object;)?=
+
+Û Û(!
+%72javax.swing.JButton"javax.swing.JButton´
+®
+
+Û Û(-
+%73"/javax.swing.JButton#<init>(Ljava/lang/String;)V*8
+
+__unknown_file (
+
+%72javax.swing.JButton*(
+
+__unknown_file (
+
+Registerj
+h
+
+Û Û(.
+btnjavax.swing.JButton"__id*8
+
+__unknown_file (
+
+%72javax.swing.JButton53
+
+Ù Ù(#
+%74java.awt.Color"java.awt.Colorœ
+Ã
+
+Ù Ù(1
+%75"java.awt.Color#<init>(III)V*3
+
+__unknown_file (
+
+%74java.awt.Color* 
+
+__unknown_file (2.*!
+
+__unknown_file (2Ã* 
+
+__unknown_file (2qÂ‚
+
+Ù Ù(2
+%76void"7javax.swing.JComponent#setBackground(Ljava/awt/Color;)V*8
+
+__unknown_file (
+
+btnjavax.swing.JButton*3
+
+__unknown_file (
+
+%74java.awt.Color2setBackground(Ljava/awt/Color;)O
+M
+
+ı ı(%
+%77java.awt.Color"__id*"
+
+__unknown_file (
+""Â‚
+
+ı ı(&
+%78void"7javax.swing.JComponent#setForeground(Ljava/awt/Color;)V*8
+
+__unknown_file (
+
+btnjavax.swing.JButton*3
+
+__unknown_file (
+
+%77java.awt.Color2setForeground(Ljava/awt/Color;)†
+ù
+
+ˆ ˆ(7$
+%79java.awt.event.ActionListener"__declareFunction*V
+
+__unknown_file (:8
+6__sonar_lambda_4$com.project.securevault.SecureFileApp®
+•
+
+__unknown_file (<
+$
+%79java.awt.event.ActionListener"
+SecureFileApp.this"__id*E
+
+__unknown_file ()'
+%com.project.securevault.SecureFileAppûõ
+
+ˆ ˆ(8
+%81void"Njavax.swing.AbstractButton#addActionListener(Ljava/awt/event/ActionListener;)V*8
+
+__unknown_file (
+
+btnjavax.swing.JButton*B
+
+__unknown_file (&
+$
+%79java.awt.event.ActionListener22addActionListener(Ljava/awt/event/ActionListener;)æª
+
+˜ ˜(%
+%82void"?java.awt.Container#add(Ljava/awt/Component;Ljava/lang/Object;)V*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel*8
+
+__unknown_file (
+
+btnjavax.swing.JButton*>
+
+__unknown_file ("
+ 
+gjava.awt.GridBagConstraints2+add(Ljava/awt/Component;Ljava/lang/Object;)?=
+
+˘ ˘("
+%83javax.swing.JButton"javax.swing.JButton∞
+≠
+
+˘ ˘(3
+%84"/javax.swing.JButton#<init>(Ljava/lang/String;)V*8
+
+__unknown_file (
+
+%83javax.swing.JButton*-
+
+__unknown_file (
+Back to Logink
+i
+
+˘ ˘(4
+backjavax.swing.JButton"__id*8
+
+__unknown_file (
+
+%83javax.swing.JButton†
+ù
+
+˙ ˙(G$
+%85java.awt.event.ActionListener"__declareFunction*V
+
+__unknown_file (:8
+6__sonar_lambda_5$com.project.securevault.SecureFileApp®
+•
+
+__unknown_file (<
+$
+%85java.awt.event.ActionListener"
+SecureFileApp.this"__id*E
+
+__unknown_file ()'
+%com.project.securevault.SecureFileAppüú
+
+˙ ˙(H
+%89void"Njavax.swing.AbstractButton#addActionListener(Ljava/awt/event/ActionListener;)V*9
+
+__unknown_file (
+
+backjavax.swing.JButton*B
+
+__unknown_file (&
+$
+%85java.awt.event.ActionListener22addActionListener(Ljava/awt/event/ActionListener;)øº
+
+˚ ˚('
+%90void"?java.awt.Container#add(Ljava/awt/Component;Ljava/lang/Object;)V*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel*9
+
+__unknown_file (
+
+backjavax.swing.JButton*>
+
+__unknown_file ("
+ 
+gjava.awt.GridBagConstraints2+add(Ljava/awt/Component;Ljava/lang/Object;)Ä˝
+
+˝ ˝(
+%91java.awt.Component"@java.awt.Container#add(Ljava/awt/Component;)Ljava/awt/Component;*=
+
+__unknown_file (!
+
+	containerjavax.swing.JPanel*8
+
+__unknown_file (
+
+cardjavax.swing.JPanel2add(Ljava/awt/Component;)"/
+
+˛ ˛(!
+
+	containerjavax.swing.JPanelB)'
+%com.project.securevault.SecureFileApp

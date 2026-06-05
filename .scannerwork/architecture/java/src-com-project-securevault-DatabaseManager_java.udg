@@ -1,0 +1,161 @@
+
+1.0AddamLister_aegisvault1.0JavaFrontend"1768151210101*java2.B¾
+5
+0src/com/project/securevault/DatabaseManager.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.project.securevault7
+,
+'com.project.securevault.DatabaseManager9
+
+class10
+
+access11
+
+public12
+
+
+full-range13
+
+(5:1)-(42:2)14
+
+simple-name15
+
+DatabaseManager16
+1
++com.project.securevault.DatabaseManager.URL18
+
+field19
+
+private20
+
+(8:5)-(8:66)21
+	
+URL22
+6
+0com.project.securevault.DatabaseManager#setup()V24
+
+method25
+
+(11:5)-(18:6)26
+
+setup27
+
+
+references28
+s
+mcom.project.securevault.DatabaseManager#registerUser(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z30
+
+(21:5)-(30:6)31
+
+registerUser32
+g
+acom.project.securevault.DatabaseManager#getUserCredentials(Ljava/lang/String;)[Ljava/lang/String;34
+
+(33:5)-(41:6)35
+
+getUserCredentials36J
+
+1
+12
+
+
+3
+4 Z
+
+5
+5768j…
+M
+17G
+171819 *
+1! ($28:5B$
+
+
+11
+20
+
+
+13
+21
+
+
+15
+22
+M
+33G
+333425 *
+1! !('28:5B$
+
+
+11
+12
+
+
+13
+35
+
+
+15
+36
+G
+8B
+8910 *
+1 (:5B$
+
+
+11
+12
+
+
+13
+14
+
+
+15
+16
+M
+23G
+232425 *
+1 (28:5B$
+
+
+11
+12
+
+
+13
+26
+
+
+15
+27
+M
+29G
+293025 *
+1 ( 28:5B$
+
+
+11
+12
+
+
+13
+31
+
+
+15
+32rQ
+
+231728*
+1< (?
+
+291728*
+1< (?
+
+331728*
+1#< #(?

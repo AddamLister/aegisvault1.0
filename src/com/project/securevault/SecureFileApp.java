@@ -1,92 +1,231 @@
 package com.project.securevault;
 
-/* --- IMPORTS ---
- * Includes libraries for the FlatLaf theme, Java Swing UI components,
- * file handling, and utility collections like Map and List.
- */
-import com.formdev.flatlaf.FlatDarkLaf;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+
 import java.io.File;
-import java.util.ArrayList;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class SecureFileApp extends JFrame {
-    private CardLayout cardLayout;
-    private JPanel mainPanel;
+/**
+ * Main JavaFX UI for Aegis Vault — a secure file encryption/decryption
+ * dashboard with login, registration, drag-and-drop file selection, and
+ * a real-time audit activity log.
+ * <p>
+ * Uses an undecorated {@link Stage} with a custom title bar that supports
+ * mouse dragging, and applies {@code style.css} for a dark-themed UI.
+ * All cryptographic operations run asynchronously via {@link Task} to
+ * keep the UI responsive.
+ * </p>
+ */
+public class SecureFileApp extends Application {
 
-    /* --- CORE SERVICES ---
-     * Instances of service classes that handle authentication logic,
-     * cryptographic operations (AES), and database interactions.
-     */
-    private AuthService authService = new AuthService();
-    private CryptoService cryptoService = new CryptoService();
-    private DatabaseManager dbManager = new DatabaseManager();
+    private static final Logger LOGGER = Logger.getLogger(SecureFileApp.class.getName());
 
-    /* --- SECURITY STATE ---
-     * Manages brute-force protection by tracking failed login attempts
-     * and calculating lockout durations for specific usernames.
-     */
-    private Map<String, Integer> failedAttempts = new HashMap<>();
-    private Map<String, Long> lockoutExpiry = new HashMap<>();
+    /* ------------------------------------------------------------------ */
+    /*  SERVICES                                                           */
+    /* ------------------------------------------------------------------ */
+
+    private final AuthService authService = new AuthService();
+    private final CryptoService cryptoService = new CryptoService();
+    private final DatabaseManager dbManager = new DatabaseManager();
+
+    /* ------------------------------------------------------------------ */
+    /*  BRUTE-FORCE PROTECTION                                             */
+    /* ------------------------------------------------------------------ */
+
+    private final Map<String, Integer> failedAttempts = new HashMap<>();
+    private final Map<String, Long> lockoutExpiry = new HashMap<>();
     private static final int MAX_ATTEMPTS = 10;
-    private static final long LOCKOUT_DURATION = 10 * 60 * 1000; // 10 minutes
+    private static final long LOCKOUT_DURATION = 10L * 60 * 1000; // 10 minutes
 
-    /* --- SESSION & UI FIELDS ---
-     * Stores data for the currently logged-in user and references
-     * to UI components like text fields and tables.
-     */
+    /* ------------------------------------------------------------------ */
+    /*  SESSION STATE                                                      */
+    /* ------------------------------------------------------------------ */
+
     private String currentUser;
     private String currentPassword;
     private String currentSalt;
 
-    private JTextField loginUsernameField, regUsernameField;
-    private JPasswordField loginPasswordField, regPasswordField, regConfirmPasswordField;
-    private JButton registerButton;
-    private JLabel statusLabel;
+    /* ------------------------------------------------------------------ */
+    /*  UI COMPONENTS                                                      */
+    /* ------------------------------------------------------------------ */
+
+    private BorderPane mainRoot;
+    private Stage primaryStage;
+
+    // Auth fields
+    private TextField loginUsernameField;
+    private PasswordField loginPasswordField;
+    private TextField loginPasswordVisibleField;
+
+    private TextField regUsernameField;
+    private PasswordField regPasswordField;
+    private TextField regPasswordVisibleField;
+    private PasswordField regConfirmPasswordField;
+    private TextField regConfirmPasswordVisibleField;
+
+    // Dashboard controls
+    private Label statusLabel;
     private File selectedFile;
+    private Button selBtn, encBtn, decBtn;
+    private ProgressBar progressBar;
 
-    private DefaultTableModel tableModel;
-    private JTable activityTable;
+    // Title bar dragging offsets
+    private double xOffset;
+    private double yOffset;
 
-    /* --- CONSTRUCTOR ---
-     * Sets up the main window (JFrame), initializes the database,
-     * and assembles the CardLayout containing Login, Register, and Dashboard.
-     */
-    public SecureFileApp() {
+    // Activity log table
+    private TableView<ActivityLog> activityTable;
+    private final ObservableList<ActivityLog> activityData = FXCollections.observableArrayList();
+
+    // View panels
+    private VBox loginPanel, registerPanel, dashboardPanel;
+
+    /* ================================================================== */
+    /*  APPLICATION LIFECYCLE                                              */
+    /* ================================================================== */
+
+    @Override
+    public void start(Stage primaryStage) {
         dbManager.setup();
-        setTitle("Aegis Vault - Secure File Manager");
-        setSize(600, 700);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+        this.primaryStage = primaryStage;
+        primaryStage.setTitle("Aegis Vault - Secure File Manager");
 
         try {
-            ImageIcon icon = new ImageIcon("src/resources/icon.png");
-            setIconImage(icon.getImage());
+            primaryStage.getIcons().add(new Image(
+                    getClass().getResource("/resources/icon.png").toExternalForm()));
         } catch (Exception e) {
-            System.err.println("Icon not found, using default Java icon.");
+            LOGGER.fine("Icon not found, using default Java icon.");
         }
 
-        cardLayout = new CardLayout();
-        mainPanel = new JPanel(cardLayout);
+        primaryStage.initStyle(StageStyle.UNDECORATED);
+        mainRoot = new BorderPane();
+        mainRoot.setTop(createTitleBar());
 
-        mainPanel.add(createLoginPanel(), "LOGIN");
-        mainPanel.add(createRegisterPanel(), "REGISTER");
-        mainPanel.add(createDashboardPanel(), "DASHBOARD");
+        loginPanel = createLoginPanel();
+        registerPanel = createRegisterPanel();
+        dashboardPanel = createDashboardPanel();
 
-        add(mainPanel);
-        cardLayout.show(mainPanel, "LOGIN");
+        showView(loginPanel);
+
+        Scene scene = new Scene(mainRoot, 600, 700);
+        try {
+            String css = getClass().getResource("/resources/style.css").toExternalForm();
+            scene.getStylesheets().add(css);
+        } catch (Exception e) {
+            LOGGER.warning("Could not load style.css");
+        }
+
+        primaryStage.setScene(scene);
+
+        // Ensure clean session teardown on window close
+        primaryStage.setOnCloseRequest(event -> {
+            clearSession();
+            Platform.exit();
+        });
+
+        primaryStage.show();
     }
 
-    /* --- AUTHENTICATION LOGIC ---
-     * Methods to handle login verification, user registration,
-     * session clearing, and logout procedures.
-     */
+    /* ================================================================== */
+    /*  TITLE BAR                                                          */
+    /* ================================================================== */
+
+    private HBox createTitleBar() {
+        HBox titleBar = new HBox();
+        titleBar.setAlignment(Pos.CENTER_RIGHT);
+        titleBar.setPadding(new Insets(5, 10, 5, 10));
+        titleBar.setStyle("-fx-background-color: #1e1e1e;");
+
+        ImageView iconView;
+        try {
+            iconView = new ImageView(new Image(
+                    getClass().getResource("/resources/icon.png").toExternalForm()));
+            iconView.setFitHeight(18);
+            iconView.setFitWidth(18);
+        } catch (Exception e) {
+            iconView = new ImageView();
+        }
+
+        Label title = new Label("Aegis Vault");
+        title.setStyle("-fx-text-fill: #a9b7c6; -fx-font-weight: bold;");
+
+        HBox titleBox = new HBox(8);
+        titleBox.setAlignment(Pos.CENTER_LEFT);
+        titleBox.getChildren().addAll(iconView, title);
+        HBox.setHgrow(titleBox, Priority.ALWAYS);
+
+        Button minimizeBtn = new Button("-");
+        minimizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #a9b7c6; -fx-font-weight: bold;");
+        minimizeBtn.setOnMouseEntered(e ->
+                minimizeBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;"));
+        minimizeBtn.setOnMouseExited(e ->
+                minimizeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #a9b7c6; -fx-font-weight: bold;"));
+        minimizeBtn.setOnAction(e -> primaryStage.setIconified(true));
+
+        Button closeBtn = new Button("X");
+        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #a9b7c6; -fx-font-weight: bold;");
+        closeBtn.setOnMouseEntered(e ->
+                closeBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;"));
+        closeBtn.setOnMouseExited(e ->
+                closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #a9b7c6; -fx-font-weight: bold;"));
+        closeBtn.setOnAction(e -> Platform.exit());
+
+        titleBar.getChildren().addAll(titleBox, minimizeBtn, closeBtn);
+
+        // Dragging support for undecorated stage
+        titleBar.setOnMousePressed(event -> {
+            xOffset = event.getSceneX();
+            yOffset = event.getSceneY();
+        });
+        titleBar.setOnMouseDragged(event -> {
+            primaryStage.setX(event.getScreenX() - xOffset);
+            primaryStage.setY(event.getScreenY() - yOffset);
+        });
+
+        return titleBar;
+    }
+
+    /* ================================================================== */
+    /*  VIEW MANAGEMENT                                                    */
+    /* ================================================================== */
+
+    private void showView(Region view) {
+        mainRoot.setCenter(view);
+    }
+
+    /* ================================================================== */
+    /*  SESSION MANAGEMENT                                                 */
+    /* ================================================================== */
+
     private void clearSession() {
         currentUser = null;
         currentPassword = null;
@@ -95,28 +234,109 @@ public class SecureFileApp extends JFrame {
 
         if (statusLabel != null) {
             statusLabel.setText("Status: No file selected");
+            statusLabel.setTextFill(Color.web("#969696"));
         }
 
-        if (loginUsernameField != null) loginUsernameField.setText("");
-        if (loginPasswordField != null) loginPasswordField.setText("");
-        if (regUsernameField != null) regUsernameField.setText("");
-        if (regPasswordField != null) regPasswordField.setText("");
-        if (regConfirmPasswordField != null) regConfirmPasswordField.setText("");
+        if (loginUsernameField != null) loginUsernameField.clear();
+        if (loginPasswordField != null) loginPasswordField.clear();
+        if (loginPasswordVisibleField != null) loginPasswordVisibleField.clear();
+
+        if (regUsernameField != null) regUsernameField.clear();
+        if (regPasswordField != null) regPasswordField.clear();
+        if (regConfirmPasswordField != null) regConfirmPasswordField.clear();
+        if (regPasswordVisibleField != null) regPasswordVisibleField.clear();
+        if (regConfirmPasswordVisibleField != null) regConfirmPasswordVisibleField.clear();
     }
+
+    /* ================================================================== */
+    /*  ALERTS                                                             */
+    /* ================================================================== */
+
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.initStyle(StageStyle.UNDECORATED);
+        alert.setGraphic(null); // Clear default graphic to avoid duplication
+
+        DialogPane dialogPane = alert.getDialogPane();
+
+        // Custom Title Bar for Alert Dialog
+        HBox alertTitleBar = new HBox();
+        alertTitleBar.setAlignment(Pos.CENTER_RIGHT);
+        alertTitleBar.setPadding(new Insets(5, 10, 5, 10));
+        alertTitleBar.setStyle("-fx-background-color: #1e1e1e;");
+
+        // Subtle indicator circle corresponding to alert severity
+        javafx.scene.shape.Circle indicator = new javafx.scene.shape.Circle(5);
+        switch (type) {
+            case ERROR -> indicator.setFill(Color.web("#e74c3c"));
+            case WARNING -> indicator.setFill(Color.web("#f1c40f"));
+            case INFORMATION -> indicator.setFill(Color.web("#3498db"));
+            default -> indicator.setFill(Color.web("#2ecc71"));
+        }
+
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-text-fill: #a9b7c6; -fx-font-weight: bold;");
+
+        HBox titleBox = new HBox(8);
+        titleBox.setAlignment(Pos.CENTER_LEFT);
+        titleBox.getChildren().addAll(indicator, titleLabel);
+        HBox.setHgrow(titleBox, Priority.ALWAYS);
+
+        // Clickable close button
+        Button closeBtn = new Button("X");
+        closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #a9b7c6; -fx-font-weight: bold; -fx-cursor: hand;");
+        closeBtn.setOnMouseEntered(e ->
+                closeBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;"));
+        closeBtn.setOnMouseExited(e ->
+                closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #a9b7c6; -fx-font-weight: bold;"));
+        closeBtn.setOnAction(e -> alert.close());
+
+        alertTitleBar.getChildren().addAll(titleBox, closeBtn);
+
+        // Dragging support for undecorated alert dialog
+        final double[] dragOffset = new double[2];
+        alertTitleBar.setOnMousePressed(event -> {
+            dragOffset[0] = event.getSceneX();
+            dragOffset[1] = event.getSceneY();
+        });
+        alertTitleBar.setOnMouseDragged(event -> {
+            alert.setX(event.getScreenX() - dragOffset[0]);
+            alert.setY(event.getScreenY() - dragOffset[1]);
+        });
+
+        dialogPane.setHeader(alertTitleBar);
+        dialogPane.setContentText(content);
+
+        try {
+            String css = getClass().getResource("/resources/style.css").toExternalForm();
+            dialogPane.getStylesheets().add(css);
+            dialogPane.getStyleClass().add("root");
+            dialogPane.setStyle("-fx-border-color: #1e1e1e; -fx-border-width: 2;");
+        } catch (Exception ignored) { }
+
+        alert.showAndWait();
+    }
+
+    /* ================================================================== */
+    /*  LOGIN HANDLER                                                      */
+    /* ================================================================== */
 
     private void handleLogin() {
         String rawUser = loginUsernameField.getText().trim();
-        String pass = new String(loginPasswordField.getPassword());
+        String pass = loginPasswordField.isVisible()
+                ? loginPasswordField.getText()
+                : loginPasswordVisibleField.getText();
 
         if (rawUser.isEmpty() || pass.isEmpty()) return;
 
         String userKey = rawUser.toLowerCase();
-
         long currentTime = System.currentTimeMillis();
+
         if (lockoutExpiry.containsKey(userKey) && currentTime < lockoutExpiry.get(userKey)) {
-            long remainingMillis = lockoutExpiry.get(userKey) - currentTime;
-            long remainingMinutes = Math.max(1, (remainingMillis / 1000) / 60);
-            JOptionPane.showMessageDialog(this, "Account locked. Try again in " + remainingMinutes + " minute(s).");
+            long remainingMinutes = Math.max(1,
+                    (lockoutExpiry.get(userKey) - currentTime) / 60_000);
+            showAlert(Alert.AlertType.WARNING, "Account Locked",
+                    "Account locked. Try again in " + remainingMinutes + " minute(s).");
             return;
         }
 
@@ -124,7 +344,7 @@ public class SecureFileApp extends JFrame {
             String[] creds = dbManager.getUserCredentials(rawUser);
 
             if (creds == null) {
-                JOptionPane.showMessageDialog(this, "User not found.");
+                showAlert(Alert.AlertType.ERROR, "Login Failed", "User not found.");
                 return;
             }
 
@@ -140,7 +360,7 @@ public class SecureFileApp extends JFrame {
 
                 AuditLogger.log(rawUser, "LOGIN_SUCCESS");
                 refreshActivityTable();
-                cardLayout.show(mainPanel, "DASHBOARD");
+                showView(dashboardPanel);
             } else {
                 int attempts = failedAttempts.getOrDefault(userKey, 0) + 1;
                 failedAttempts.put(userKey, attempts);
@@ -148,42 +368,56 @@ public class SecureFileApp extends JFrame {
 
                 if (attempts >= MAX_ATTEMPTS) {
                     lockoutExpiry.put(userKey, currentTime + LOCKOUT_DURATION);
-                    JOptionPane.showMessageDialog(this, "Maximum attempts reached. Account locked.");
+                    showAlert(Alert.AlertType.ERROR, "Account Locked",
+                            "Maximum attempts reached. Account locked.");
                 } else {
                     int remaining = MAX_ATTEMPTS - attempts;
-                    JOptionPane.showMessageDialog(this, "Invalid Password! " + remaining + " attempts left.");
+                    showAlert(Alert.AlertType.WARNING, "Login Failed",
+                            "Invalid Password! " + remaining + " attempts left.");
                 }
-                loginPasswordField.setText("");
+                loginPasswordField.clear();
+                loginPasswordVisibleField.clear();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            LOGGER.log(Level.WARNING, "Login error", e);
         }
     }
 
+    /* ================================================================== */
+    /*  REGISTRATION HANDLER                                               */
+    /* ================================================================== */
+
     private void handleRegistration() {
         String user = regUsernameField.getText().trim();
-        String pass = new String(regPasswordField.getPassword());
-        String confirm = new String(regConfirmPasswordField.getPassword());
+        String pass = regPasswordField.isVisible()
+                ? regPasswordField.getText()
+                : regPasswordVisibleField.getText();
+        String confirm = regConfirmPasswordField.isVisible()
+                ? regConfirmPasswordField.getText()
+                : regConfirmPasswordVisibleField.getText();
 
         if (user.isEmpty() || pass.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Fields cannot be empty.");
+            showAlert(Alert.AlertType.WARNING, "Validation Error",
+                    "Fields cannot be empty.");
             return;
         }
 
-        // --- SECURITY CHECKS ---
         if (pass.length() <= 12) {
-            JOptionPane.showMessageDialog(this, "Password must be more than 12 characters long.");
+            showAlert(Alert.AlertType.WARNING, "Validation Error",
+                    "Password must be more than 12 characters long.");
             return;
         }
 
         String complexityRegex = "^(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>]).*$";
         if (!pass.matches(complexityRegex)) {
-            JOptionPane.showMessageDialog(this, "Password must contain at least one number and one special character.");
+            showAlert(Alert.AlertType.WARNING, "Validation Error",
+                    "Password must contain at least one number and one special character.");
             return;
         }
 
         if (!pass.equals(confirm)) {
-            JOptionPane.showMessageDialog(this, "Passwords do not match.");
+            showAlert(Alert.AlertType.WARNING, "Validation Error",
+                    "Passwords do not match.");
             return;
         }
 
@@ -192,331 +426,486 @@ public class SecureFileApp extends JFrame {
             String hash = authService.hashPassword(pass, salt);
             if (dbManager.registerUser(user, hash, salt)) {
                 AuditLogger.log(user, "REGISTER_SUCCESS");
-                JOptionPane.showMessageDialog(this, "Account created! Please login.");
-                cardLayout.show(mainPanel, "LOGIN");
+                showAlert(Alert.AlertType.INFORMATION, "Success",
+                        "Account created! Please login.");
+                showView(loginPanel);
             } else {
-                JOptionPane.showMessageDialog(this, "Username already exists.");
+                showAlert(Alert.AlertType.ERROR, "Registration Error",
+                        "Username already exists.");
             }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Registration Error: " + e.getMessage());
+        } catch (NoSuchAlgorithmException e) {
+            showAlert(Alert.AlertType.ERROR, "Registration Error", e.getMessage());
         }
     }
+
+    /* ================================================================== */
+    /*  LOGOUT HANDLER                                                     */
+    /* ================================================================== */
 
     private void handleLogout() {
         AuditLogger.log(currentUser, "LOGOUT");
         clearSession();
-        cardLayout.show(mainPanel, "LOGIN");
+        showView(loginPanel);
     }
 
-    /* --- FILE OPERATIONS ---
-     * Interacts with CryptoService to perform encryption and decryption.
+    /* ================================================================== */
+    /*  ENCRYPTION / DECRYPTION TASK WORKERS                               */
+    /* ================================================================== */
+
+    /**
+     * Disables action buttons and shows the progress bar during
+     * cryptographic operations.
      */
+    private void lockUI() {
+        selBtn.setDisable(true);
+        encBtn.setDisable(true);
+        decBtn.setDisable(true);
+        progressBar.setVisible(true);
+    }
+
+    /**
+     * Re-enables action buttons and hides the progress bar after
+     * cryptographic operations complete.
+     */
+    private void unlockUI() {
+        progressBar.setVisible(false);
+        selBtn.setDisable(false);
+        encBtn.setDisable(false);
+        decBtn.setDisable(false);
+    }
+
     private void handleEncryption() {
         if (selectedFile == null) return;
-        try {
-            cryptoService.encrypt(selectedFile, currentPassword, currentSalt);
-            if (selectedFile.delete()) {
-                statusLabel.setText("Status: Encrypted & Original Deleted!");
-                AuditLogger.log(currentUser, "FILE_ENCRYPTED_AND_DELETED: " + selectedFile.getName());
-            } else {
-                statusLabel.setText("Status: Encrypted (Could not delete original)");
+
+        lockUI();
+        statusLabel.setText("Status: Encrypting...");
+        statusLabel.setTextFill(Color.web("#a9b7c6"));
+
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                cryptoService.encrypt(selectedFile, currentPassword, currentSalt);
+                return null;
             }
-            selectedFile = null;
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Encryption failed: " + e.getMessage());
-        }
+        };
+
+        task.setOnSucceeded(e -> {
+            unlockUI();
+            try {
+                if (cryptoService.secureDelete(selectedFile)) {
+                    statusLabel.setText("Status: Encrypted & Original Wiped!");
+                    AuditLogger.log(currentUser,
+                            "FILE_ENCRYPTED_AND_WIPED: " + selectedFile.getName());
+                } else {
+                    statusLabel.setText("Status: Encrypted (Could not delete original)");
+                }
+                selectedFile = null;
+            } catch (Exception ex) {
+                showAlert(Alert.AlertType.ERROR, "Encryption Failed", ex.getMessage());
+            }
+            refreshActivityTable();
+        });
+
+        task.setOnFailed(e -> {
+            unlockUI();
+            showAlert(Alert.AlertType.ERROR, "Encryption Failed",
+                    task.getException().getMessage());
+            refreshActivityTable();
+        });
+
+        new Thread(task).start();
     }
 
     private void handleDecryption() {
         if (selectedFile == null) return;
-        try {
-            cryptoService.decrypt(selectedFile, currentPassword, currentSalt);
+
+        lockUI();
+        statusLabel.setText("Status: Decrypting...");
+        statusLabel.setTextFill(Color.web("#a9b7c6"));
+
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                cryptoService.decrypt(selectedFile, currentPassword, currentSalt);
+                return null;
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            unlockUI();
             statusLabel.setText("Status: File Decrypted Successfully!");
+            statusLabel.setTextFill(Color.web("#2ecc71"));
             AuditLogger.log(currentUser, "FILE_DECRYPTED: " + selectedFile.getName());
             selectedFile = null;
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Decryption failed: Wrong password or file tampered.");
-        }
-    }
+            refreshActivityTable();
+        });
 
-    /* --- UI LAYOUT METHODS ---
-     * Methods using GridBagLayout and BorderLayout to build the app's interface.
-     */
-    private JPanel createLoginPanel() {
-        JPanel container = new JPanel(new GridBagLayout());
-        container.setBorder(new EmptyBorder(40, 40, 40, 40));
-
-        JPanel card = new JPanel(new GridBagLayout());
-        card.putClientProperty("FlatLaf.style", "arc: 20");
-        card.setBorder(new EmptyBorder(20, 20, 20, 20));
-
-        GridBagConstraints g = new GridBagConstraints();
-        g.insets = new Insets(10, 10, 10, 10);
-        g.fill = GridBagConstraints.HORIZONTAL;
-
-        JLabel title = new JLabel("Welcome Back");
-        title.setFont(new Font("SansSerif", Font.BOLD, 22));
-        g.gridx = 0; g.gridy = 0; g.gridwidth = 2;
-        g.anchor = GridBagConstraints.CENTER;
-        card.add(title, g);
-
-        loginUsernameField = new JTextField(15);
-        loginUsernameField.putClientProperty("JTextField.placeholderText", "Username");
-        g.gridy = 1; card.add(new JLabel("Username"), g);
-        g.gridy = 2; card.add(loginUsernameField, g);
-
-        loginPasswordField = new JPasswordField(15);
-        loginPasswordField.putClientProperty("JTextField.placeholderText", "Password");
-        g.gridy = 3; card.add(new JLabel("Password"), g);
-        g.gridy = 4; card.add(loginPasswordField, g);
-
-        // --- PASSWORD VISIBILITY TOGGLE ---
-        JCheckBox showPass = new JCheckBox("Show Password");
-        showPass.addActionListener(e -> {
-            if (showPass.isSelected()) {
-                loginPasswordField.setEchoChar((char) 0);
+        task.setOnFailed(e -> {
+            unlockUI();
+            Throwable cause = task.getException();
+            if (cause != null && (cause instanceof SecurityException
+                    || (cause.getCause() != null
+                    && cause.getCause() instanceof SecurityException))) {
+                String msg = cause instanceof SecurityException
+                        ? cause.getMessage()
+                        : cause.getCause().getMessage();
+                showAlert(Alert.AlertType.ERROR, "INTEGRITY COMPROMISED", msg);
+                statusLabel.setText(
+                        "Security Alert: Threat intercepted. Process execution terminated.");
+                statusLabel.setTextFill(Color.web("#e74c3c"));
+                AuditLogger.log(currentUser,
+                        "TAMPER_ATTEMPT_DETECTED: " + selectedFile.getName());
             } else {
-                loginPasswordField.setEchoChar('•');
+                String errMsg = cause != null ? cause.getMessage() : "Unknown error";
+                showAlert(Alert.AlertType.ERROR, "Operational Error",
+                        "Decryption failed: " + errMsg);
             }
+            refreshActivityTable();
         });
-        g.gridy = 5; card.add(showPass, g);
 
-        JButton btn = new JButton("Login");
-        btn.setBackground(new Color(52, 152, 219));
-        btn.setForeground(Color.WHITE);
-        btn.addActionListener(e -> handleLogin());
-        g.gridy = 6; card.add(btn, g);
+        new Thread(task).start();
+    }
 
-        registerButton = new JButton("Register");
-        registerButton.addActionListener(e -> cardLayout.show(mainPanel, "REGISTER"));
-        g.gridy = 7; card.add(registerButton, g);
+    /* ================================================================== */
+    /*  PASSWORD VISIBILITY BINDING                                        */
+    /* ================================================================== */
 
-        container.add(card);
+    private void bindPasswordFields(PasswordField pf, TextField tf) {
+        tf.textProperty().bindBidirectional(pf.textProperty());
+    }
+
+    /* ================================================================== */
+    /*  LOGIN PANEL                                                        */
+    /* ================================================================== */
+
+    private VBox createLoginPanel() {
+        VBox container = new VBox();
+        container.setAlignment(Pos.CENTER);
+        container.setPadding(new Insets(40));
+
+        VBox card = new VBox(15);
+        card.getStyleClass().addAll("card", "login-card");
+        card.setAlignment(Pos.CENTER);
+        card.setMaxWidth(400);
+
+        Label title = new Label("Welcome Back");
+        title.setFont(Font.font("SansSerif", FontWeight.BOLD, 22));
+
+        VBox userBox = new VBox(5);
+        Label userLbl = new Label("Username");
+        loginUsernameField = new TextField();
+        loginUsernameField.setPromptText("Username");
+        userBox.getChildren().addAll(userLbl, loginUsernameField);
+
+        VBox passBox = new VBox(5);
+        Label passLbl = new Label("Password");
+
+        StackPane passStack = new StackPane();
+        loginPasswordField = new PasswordField();
+        loginPasswordField.setPromptText("Password");
+        loginPasswordVisibleField = new TextField();
+        loginPasswordVisibleField.setPromptText("Password");
+        loginPasswordVisibleField.setVisible(false);
+        bindPasswordFields(loginPasswordField, loginPasswordVisibleField);
+        passStack.getChildren().addAll(loginPasswordField, loginPasswordVisibleField);
+
+        passBox.getChildren().addAll(passLbl, passStack);
+
+        CheckBox showPass = new CheckBox("Show Password");
+        showPass.setOnAction(e -> {
+            loginPasswordField.setVisible(!showPass.isSelected());
+            loginPasswordVisibleField.setVisible(showPass.isSelected());
+        });
+
+        Button loginBtn = new Button("Login");
+        loginBtn.getStyleClass().add("button-primary");
+        loginBtn.setMaxWidth(Double.MAX_VALUE);
+        loginBtn.setOnAction(e -> handleLogin());
+        loginBtn.setDefaultButton(true);
+
+        Button regBtn = new Button("Register");
+        regBtn.getStyleClass().add("button");
+        regBtn.setMaxWidth(Double.MAX_VALUE);
+        regBtn.setOnAction(e -> showView(registerPanel));
+
+        card.getChildren().addAll(title, userBox, passBox, showPass, loginBtn, regBtn);
+        container.getChildren().add(card);
+
         return container;
     }
 
-    /* --- REGISTRATION PANEL WITH DYNAMIC REQUIREMENTS --- */
-    private JPanel createRegisterPanel() {
-        JPanel container = new JPanel(new GridBagLayout());
-        container.setBorder(new EmptyBorder(40, 40, 40, 40));
+    /* ================================================================== */
+    /*  REGISTER PANEL                                                     */
+    /* ================================================================== */
 
-        JPanel card = new JPanel(new GridBagLayout());
-        card.putClientProperty("FlatLaf.style", "arc: 20");
-        card.setBorder(new EmptyBorder(20, 20, 20, 20));
+    private VBox createRegisterPanel() {
+        VBox container = new VBox();
+        container.setAlignment(Pos.CENTER);
+        container.setPadding(new Insets(40));
 
-        GridBagConstraints g = new GridBagConstraints();
-        g.insets = new Insets(8, 10, 8, 10);
-        g.fill = GridBagConstraints.HORIZONTAL;
+        VBox card = new VBox(10);
+        card.getStyleClass().addAll("card", "register-card");
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setMaxWidth(400);
 
-        JLabel title = new JLabel("Create Account");
-        title.setFont(new Font("SansSerif", Font.BOLD, 22));
-        g.gridx = 0; g.gridy = 0; g.gridwidth = 2;
-        card.add(title, g);
+        Label title = new Label("Create Account");
+        title.setFont(Font.font("SansSerif", FontWeight.BOLD, 22));
+        title.setAlignment(Pos.CENTER);
+        title.setMaxWidth(Double.MAX_VALUE);
 
-        // --- REQUIREMENT TEXT BOX ---
-        // This text stays visible so the user knows exactly what to type.
-        JLabel reqText = new JLabel("<html><body style='width: 250px; color: #E74C3C;'>" +
-                "<b>Password Requirements:</b><br>" +
-                "• More than 12 characters<br>" +
-                "• At least one number (0-9)<br>" +
-                "• At least one special character (!@#$%^&*)</body></html>");
-        g.gridy = 1; card.add(reqText, g);
+        Text reqText = new Text("""
+                Password Requirements:
+                \u2022 More than 12 characters
+                \u2022 At least one number (0-9)
+                \u2022 At least one special character (!@#$%^&*)""");
+        reqText.setFill(Color.web("#e74c3c"));
 
-        regUsernameField = new JTextField(15);
-        regPasswordField = new JPasswordField(15);
-        regConfirmPasswordField = new JPasswordField(15);
+        VBox userBox = new VBox(5);
+        regUsernameField = new TextField();
+        userBox.getChildren().addAll(new Label("Username"), regUsernameField);
 
-        // --- REAL-TIME CHECKER ---
-        // This listener changes the requirement text color to green when satisfied.
-        regPasswordField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            public void changedUpdate(javax.swing.event.DocumentEvent e) { check(); }
-            public void removeUpdate(javax.swing.event.DocumentEvent e) { check(); }
-            public void insertUpdate(javax.swing.event.DocumentEvent e) { check(); }
+        VBox passBox = new VBox(5);
+        regPasswordField = new PasswordField();
+        regPasswordVisibleField = new TextField();
+        regPasswordVisibleField.setVisible(false);
+        bindPasswordFields(regPasswordField, regPasswordVisibleField);
+        StackPane passStack = new StackPane(regPasswordField, regPasswordVisibleField);
+        passBox.getChildren().addAll(new Label("Password"), passStack);
 
-            private void check() {
-                String p = new String(regPasswordField.getPassword());
-                String regex = "^(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>]).*$";
-                if (p.length() > 12 && p.matches(regex)) {
-                    reqText.setText("<html><body style='width: 250px; color: #2ECC71;'>" +
-                            "<b>Password Requirements:</b> (Requirement Met!)<br>" +
-                            "• More than 12 characters<br>" +
-                            "• At least one number (0-9)<br>" +
-                            "• At least one special character (!@#$%^&*)</body></html>");
-                } else {
-                    reqText.setText("<html><body style='width: 250px; color: #E74C3C;'>" +
-                            "<b>Password Requirements:</b><br>" +
-                            "• More than 12 characters<br>" +
-                            "• At least one number (0-9)<br>" +
-                            "• At least one special character (!@#$%^&*)</body></html>");
-                }
+        VBox confirmBox = new VBox(5);
+        regConfirmPasswordField = new PasswordField();
+        regConfirmPasswordVisibleField = new TextField();
+        regConfirmPasswordVisibleField.setVisible(false);
+        bindPasswordFields(regConfirmPasswordField, regConfirmPasswordVisibleField);
+        StackPane confirmStack = new StackPane(
+                regConfirmPasswordField, regConfirmPasswordVisibleField);
+        confirmBox.getChildren().addAll(new Label("Confirm Password"), confirmStack);
+
+        regPasswordField.textProperty().addListener((obs, oldV, newV) -> {
+            String regex = "^(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>]).*$";
+            if (newV.length() > 12 && newV.matches(regex)) {
+                reqText.setText("""
+                        Password Requirements: (Requirement Met!)
+                        \u2022 More than 12 characters
+                        \u2022 At least one number (0-9)
+                        \u2022 At least one special character (!@#$%^&*)""");
+                reqText.setFill(Color.web("#2ecc71"));
+            } else {
+                reqText.setText("""
+                        Password Requirements:
+                        \u2022 More than 12 characters
+                        \u2022 At least one number (0-9)
+                        \u2022 At least one special character (!@#$%^&*)""");
+                reqText.setFill(Color.web("#e74c3c"));
             }
         });
 
-        g.gridy = 2; card.add(new JLabel("Username"), g);
-        g.gridy = 3; card.add(regUsernameField, g);
-        g.gridy = 4; card.add(new JLabel("Password"), g);
-        g.gridy = 5; card.add(regPasswordField, g);
-        g.gridy = 6; card.add(new JLabel("Confirm Password"), g);
-        g.gridy = 7; card.add(regConfirmPasswordField, g);
-
-        // Visibility Toggle
-        JCheckBox showPass = new JCheckBox("Show Passwords");
-        showPass.addActionListener(e -> {
-            char echo = showPass.isSelected() ? (char) 0 : '•';
-            regPasswordField.setEchoChar(echo);
-            regConfirmPasswordField.setEchoChar(echo);
+        CheckBox showPass = new CheckBox("Show Passwords");
+        showPass.setOnAction(e -> {
+            boolean show = showPass.isSelected();
+            regPasswordField.setVisible(!show);
+            regPasswordVisibleField.setVisible(show);
+            regConfirmPasswordField.setVisible(!show);
+            regConfirmPasswordVisibleField.setVisible(show);
         });
-        g.gridy = 8; card.add(showPass, g);
 
-        JButton btn = new JButton("Register");
-        btn.setBackground(new Color(46, 204, 113));
-        btn.setForeground(Color.WHITE);
-        btn.addActionListener(e -> handleRegistration());
-        g.gridy = 9; card.add(btn, g);
+        Button btn = new Button("Register");
+        btn.getStyleClass().add("button-success");
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.setOnAction(e -> handleRegistration());
 
-        JButton back = new JButton("Back to Login");
-        back.addActionListener(e -> cardLayout.show(mainPanel, "LOGIN"));
-        g.gridy = 10; card.add(back, g);
+        Button back = new Button("Back to Login");
+        back.getStyleClass().add("button");
+        back.setMaxWidth(Double.MAX_VALUE);
+        back.setOnAction(e -> showView(loginPanel));
 
-        container.add(card);
+        card.getChildren().addAll(
+                title, reqText, userBox, passBox, confirmBox, showPass, btn, back);
+        container.getChildren().add(card);
+
         return container;
     }
 
-    /* --- DASHBOARD PANEL ---
-     * Constructs the main user interface for logged-in users,
-     * including the header with the About and Logout buttons.
-     */
-    private JPanel createDashboardPanel() {
-        JPanel container = new JPanel(new BorderLayout(20, 20));
-        container.setBorder(new EmptyBorder(30, 30, 30, 30));
+    /* ================================================================== */
+    /*  DASHBOARD PANEL                                                    */
+    /* ================================================================== */
 
-        // Header Section
-        JPanel header = new JPanel(new BorderLayout());
-        JLabel welcomeLabel = new JLabel("Aegis Vault Dashboard");
-        welcomeLabel.setFont(new Font("SansSerif", Font.BOLD, 24));
-        header.add(welcomeLabel, BorderLayout.WEST);
+    @SuppressWarnings("unchecked")
+    private VBox createDashboardPanel() {
+        VBox container = new VBox(20);
+        container.setPadding(new Insets(30));
 
-        // Header Buttons (About & Logout)
-        JPanel navActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        // --- Header ---
+        HBox header = new HBox();
+        header.setAlignment(Pos.CENTER_LEFT);
 
-        JButton aboutBtn = new JButton("About");
-        aboutBtn.putClientProperty("JButton.buttonType", "roundRect");
-        aboutBtn.addActionListener(e -> showAboutDialog()); // Triggers the About Dialog
+        Label welcomeLabel = new Label("Aegis Vault Dashboard");
+        welcomeLabel.setFont(Font.font("SansSerif", FontWeight.BOLD, 24));
 
-        JButton logout = new JButton("Logout");
-        logout.putClientProperty("JButton.buttonType", "roundRect");
-        logout.addActionListener(e -> handleLogout());
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        navActions.add(aboutBtn);
-        navActions.add(logout);
-        header.add(navActions, BorderLayout.EAST);
+        Button aboutBtn = new Button("About");
+        aboutBtn.getStyleClass().add("button");
+        aboutBtn.setOnAction(e -> showAboutDialog());
 
-        // Main Center Area (File Controls)
-        JPanel mainCenter = new JPanel(new BorderLayout(0, 20));
-        JPanel card = new JPanel(new GridBagLayout());
-        card.putClientProperty("FlatLaf.style", "arc: 20");
-        card.setBorder(new EmptyBorder(20, 20, 20, 20));
+        Button logoutBtn = new Button("Logout");
+        logoutBtn.getStyleClass().add("button");
+        logoutBtn.setOnAction(e -> handleLogout());
 
-        statusLabel = new JLabel("Status: No file selected", SwingConstants.CENTER);
-        statusLabel.setFont(new Font("SansSerif", Font.ITALIC, 14));
-        statusLabel.setForeground(new Color(150, 150, 150));
+        HBox actions = new HBox(10, aboutBtn, logoutBtn);
+        header.getChildren().addAll(welcomeLabel, spacer, actions);
 
-        JButton sel = new JButton("Select File");
-        JButton enc = new JButton("Encrypt File");
-        JButton dec = new JButton("Decrypt File");
+        // --- Operations Card ---
+        VBox card = new VBox(15);
+        card.getStyleClass().add("card");
+        card.setAlignment(Pos.CENTER);
 
-        sel.putClientProperty("JButton.buttonType", "roundRect");
+        statusLabel = new Label("Status: No file selected");
+        statusLabel.setFont(Font.font("SansSerif", FontPosture.ITALIC, 14));
+        statusLabel.setTextFill(Color.web("#969696"));
 
-        // Red for Encryption
-        enc.putClientProperty("JButton.buttonType", "roundRect");
-        enc.setBackground(new Color(231, 76, 60));
-        enc.setForeground(Color.WHITE);
+        progressBar = new ProgressBar();
+        progressBar.setMaxWidth(Double.MAX_VALUE);
+        progressBar.setVisible(false);
 
-        // Blue for Decryption
-        dec.putClientProperty("JButton.buttonType", "roundRect");
-        dec.setBackground(new Color(52, 152, 219));
-        dec.setForeground(Color.WHITE);
+        selBtn = new Button("Select File or Drag and Drop Here");
+        selBtn.getStyleClass().add("drop-zone");
+        selBtn.setMaxWidth(Double.MAX_VALUE);
+        selBtn.setPrefHeight(60);
 
-        sel.addActionListener(e -> {
-            JFileChooser j = new JFileChooser();
-            if(j.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                selectedFile = j.getSelectedFile();
+        HBox actionBtns = new HBox(10);
+        actionBtns.setAlignment(Pos.CENTER);
+
+        encBtn = new Button("Encrypt File");
+        encBtn.getStyleClass().add("button-danger");
+        encBtn.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(encBtn, Priority.ALWAYS);
+
+        decBtn = new Button("Decrypt File");
+        decBtn.getStyleClass().add("button-primary");
+        decBtn.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(decBtn, Priority.ALWAYS);
+
+        actionBtns.getChildren().addAll(encBtn, decBtn);
+
+        selBtn.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select File");
+            File file = fileChooser.showOpenDialog(primaryStage);
+            if (file != null) {
+                selectedFile = file;
                 statusLabel.setText("Selected: " + selectedFile.getName());
-                statusLabel.setForeground(new Color(52, 152, 219));
+                statusLabel.setTextFill(Color.web("#3498db"));
             }
         });
 
-        enc.addActionListener(e -> { handleEncryption(); refreshActivityTable(); });
-        dec.addActionListener(e -> { handleDecryption(); refreshActivityTable(); });
+        encBtn.setOnAction(e -> handleEncryption());
+        decBtn.setOnAction(e -> handleDecryption());
 
-        GridBagConstraints g = new GridBagConstraints();
-        g.insets = new Insets(10, 10, 10, 10);
-        g.fill = GridBagConstraints.HORIZONTAL;
-        g.gridx = 0; g.gridy = 0; g.gridwidth = 2;
-        card.add(statusLabel, g);
-        g.gridy = 1; card.add(sel, g);
-        g.gridy = 2; g.gridwidth = 1; card.add(enc, g);
-        g.gridx = 1; card.add(dec, g);
+        // Drag-and-drop support
+        card.setOnDragOver(event -> {
+            if (event.getDragboard().hasFiles()) {
+                event.acceptTransferModes(TransferMode.COPY);
+            }
+            event.consume();
+        });
 
-        // Activity Table
-        String[] columns = {"Timestamp", "Action"};
-        tableModel = new DefaultTableModel(columns, 0);
-        activityTable = new JTable(tableModel);
-        activityTable.setEnabled(false);
-        JScrollPane scrollPane = new JScrollPane(activityTable);
-        scrollPane.setPreferredSize(new Dimension(400, 150));
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Recent Activity"));
+        card.setOnDragDropped(event -> {
+            var db = event.getDragboard();
+            boolean success = false;
+            if (db.hasFiles() && !db.getFiles().isEmpty()) {
+                success = true;
+                selectedFile = db.getFiles().get(0);
+                statusLabel.setText("Selected: " + selectedFile.getName());
+                statusLabel.setTextFill(Color.web("#3498db"));
+            }
+            event.setDropCompleted(success);
+            event.consume();
+        });
 
-        mainCenter.add(card, BorderLayout.NORTH);
-        mainCenter.add(scrollPane, BorderLayout.CENTER);
+        card.getChildren().addAll(statusLabel, progressBar, selBtn, actionBtns);
 
-        container.add(header, BorderLayout.NORTH);
-        container.add(mainCenter, BorderLayout.CENTER);
+        // --- Activity Table ---
+        VBox tableBox = new VBox(5);
+        Label tableTitle = new Label("Recent Activity");
+        tableTitle.setStyle("-fx-font-weight: bold;");
 
+        activityTable = new TableView<>();
+        activityTable.setItems(activityData);
+
+        TableColumn<ActivityLog, String> timeCol = new TableColumn<>("Timestamp");
+        timeCol.setCellValueFactory(
+                cellData -> new SimpleStringProperty(cellData.getValue().timestamp()));
+        timeCol.setPrefWidth(180);
+
+        TableColumn<ActivityLog, String> actionCol = new TableColumn<>("Action");
+        actionCol.setCellValueFactory(
+                cellData -> new SimpleStringProperty(cellData.getValue().action()));
+        actionCol.setPrefWidth(350);
+
+        activityTable.getColumns().addAll(timeCol, actionCol);
+        VBox.setVgrow(activityTable, Priority.ALWAYS);
+
+        tableBox.getChildren().addAll(tableTitle, activityTable);
+        VBox.setVgrow(tableBox, Priority.ALWAYS);
+
+        container.getChildren().addAll(header, card, tableBox);
         return container;
     }
 
-    /* --- UTILITY METHODS --- */
+    /* ================================================================== */
+    /*  ACTIVITY LOG                                                       */
+    /* ================================================================== */
+
     private void refreshActivityTable() {
-        tableModel.setRowCount(0);
-        File logFile = new File("audit_log.txt");
-        if (!logFile.exists()) return;
-        try (Scanner scanner = new Scanner(logFile)) {
-            List<String> lines = new ArrayList<>();
-            while (scanner.hasNextLine()) lines.add(scanner.nextLine());
-            int start = Math.max(0, lines.size() - 5);
-            for (int i = lines.size() - 1; i >= start; i--) {
-                String[] parts = lines.get(i).split(" \\| ");
-                if (parts.length >= 3) {
-                    tableModel.addRow(new Object[]{parts[0].substring(0, 19), parts[2].replace("Action: ", "")});
+        Platform.runLater(() -> {
+            activityData.clear();
+            File logFile = new File("audit_log.txt");
+            if (!logFile.exists()) return;
+
+            try {
+                List<String> lines = Files.readAllLines(logFile.toPath(), StandardCharsets.UTF_8);
+                int start = Math.max(0, lines.size() - 5);
+                for (int i = lines.size() - 1; i >= start; i--) {
+                    String[] parts = lines.get(i).split(" \\| ");
+                    if (parts.length >= 3) {
+                        String timestamp = parts[0].length() >= 19
+                                ? parts[0].substring(0, 19) : parts[0];
+                        String action = parts[2].replace("Action: ", "");
+                        activityData.add(new ActivityLog(timestamp, action));
+                    }
                 }
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING, "Failed to read audit log", e);
             }
-        } catch (Exception e) {}
+        });
     }
 
-    /* --- ABOUT DIALOG ---
-     * Displays a styled information dialog showing system version
-     * and the underlying security protocols.
-     */
+    /* ================================================================== */
+    /*  ABOUT DIALOG                                                       */
+    /* ================================================================== */
+
     private void showAboutDialog() {
-        String message = "<html><body style='width: 300px; padding: 10px;'>" +
-                "<h2 style='color: #3498db;'>Aegis Vault v1.0</h2>" +
-                "<p>A secure file management system designed for maximum privacy.</p><br>" +
-                "<b>Security Protocols:</b>" +
-                "<ul style='margin-left: 20px;'>" +
-                "<li><b>Encryption:</b> AES-256 (CBC Mode)</li>" +
-                "<li><b>Key Derivation:</b> PBKDF2 with HMAC-SHA256</li>" +
-                "<li><b>Password Hashing:</b> SHA-256 with 16-byte Salt</li>" +
-                "</ul></body></html>";
-
-        JOptionPane.showMessageDialog(this, message, "About Aegis Vault", JOptionPane.INFORMATION_MESSAGE);
+        showAlert(Alert.AlertType.INFORMATION, "About Aegis Vault",
+                """
+                        Aegis Vault v1.0 (Pro Version)
+                        
+                        A secure file management system guaranteeing Confidentiality, Integrity, and Authenticity.
+                        
+                        Security Protocols:
+                        - Confidentiality: AES-256 (CBC Mode)
+                        - Integrity & Authenticity: Encrypt-then-MAC using HMAC-SHA256
+                        - Key Derivation: PBKDF2 (512-bit split keys)
+                        - Secure Shredding: 3-pass DoD-inspired overwrite""");
     }
 
-    /* --- MAIN ENTRY POINT --- */
-    public static void main(String[] args) {
-        try {
-            com.formdev.flatlaf.FlatDarkLaf.setup();
-        } catch (Exception ex) {}
-        javax.swing.SwingUtilities.invokeLater(() -> new SecureFileApp().setVisible(true));
-    }
+    /* ================================================================== */
+    /*  DATA MODEL                                                         */
+    /* ================================================================== */
+
+    /**
+     * Immutable record representing a single row in the activity table.
+     */
+    public record ActivityLog(String timestamp, String action) { }
 }

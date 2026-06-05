@@ -1,0 +1,7 @@
+organization=addamlister
+projectKey=AddamLister_aegisvault1.0
+serverUrl=https://sonarcloud.io
+serverVersion=8.0.0.78371
+dashboardUrl=https://sonarcloud.io/dashboard?id=AddamLister_aegisvault1.0
+ceTaskId=AZuuBnPxj4Ttv7fX0_5f
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZuuBnPxj4Ttv7fX0_5f

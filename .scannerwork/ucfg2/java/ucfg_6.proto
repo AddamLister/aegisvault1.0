@@ -1,0 +1,98 @@
+
+8com.project.securevault.SecureFileApp#%field_initializer
+__unknown_file ("1*Ÿ
+1 (µ²
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java* (5)
+%0#com.project.securevault.AuthService"#com.project.securevault.AuthServiceÓ
+Ð
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java& (7
+%1"-com.project.securevault.AuthService#<init>()V*7
+ (+
+)
+%0#com.project.securevault.AuthServiceÞ
+Û
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java (88'
+%com.project.securevault.SecureFileApp"
+authService"__id*7
+ (+
+)
+%0#com.project.securevault.AuthService¹¶
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java. (;+
+%2%com.project.securevault.CryptoService"%com.project.securevault.CryptoService×
+Ô
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java* (=
+%3"/com.project.securevault.CryptoService#<init>()V*9
+ (-
++
+%2%com.project.securevault.CryptoServiceâ
+ß
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java (>:'
+%com.project.securevault.SecureFileApp"
+cryptoService"__id*9
+ (-
++
+%2%com.project.securevault.CryptoService½º
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java, (;-
+%4'com.project.securevault.DatabaseManager"'com.project.securevault.DatabaseManagerÛ
+Ø
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java( (=
+%5"1com.project.securevault.DatabaseManager#<init>()V*;
+ (/
+-
+%4'com.project.securevault.DatabaseManagerà
+Ý
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java (>6'
+%com.project.securevault.SecureFileApp"
+	dbManager"__id*;
+ (/
+-
+%4'com.project.securevault.DatabaseManager‘Ž
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java#6 #(?
+%6java.util.HashMap"java.util.HashMap¯
+¬
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java#2 #(A
+%7"java.util.HashMap#<init>()V*%
+ (
+
+%6java.util.HashMapÏ
+Ì
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java# #(B;'
+%com.project.securevault.SecureFileApp"
+failedAttempts"__id*%
+ (
+
+%6java.util.HashMap‘Ž
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java$2 $(;
+%8java.util.HashMap"java.util.HashMap¯
+¬
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java$. $(=
+%9"java.util.HashMap#<init>()V*%
+ (
+
+%8java.util.HashMapÎ
+Ë
+`
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java$ $(>:'
+%com.project.securevault.SecureFileApp"
+lockoutExpiry"__id*%
+ (
+
+%8java.util.HashMap"v
+_
+VC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/SecureFileApp.java Š(
+implicit returnB)'
+%com.project.securevault.SecureFileApp

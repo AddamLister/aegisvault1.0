@@ -1,0 +1,134 @@
+
+1.0AddamLister_aegisvault1.0JavaFrontend"1768151208676*java2.BÜ
+1
+,src/com/project/securevault/AuthService.java2
+	
+type3
+	
+MAIN4
+
+package6
+
+com.project.securevault7
+(
+#com.project.securevault.AuthService9
+
+class10
+
+access11
+
+public12
+
+
+full-range13
+
+(6:1)-(28:2)14
+
+simple-name15
+
+AuthService16
+J
+Dcom.project.securevault.AuthService#generateSalt()Ljava/lang/String;18
+
+method19
+
+(9:5)-(11:6)20
+
+generateSalt21
+n
+hcom.project.securevault.AuthService#hashPassword(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;23
+
+(14:5)-(20:6)24
+
+hashPassword25
+i
+ccom.project.securevault.AuthService#verify(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z27
+
+(23:5)-(27:6)28
+
+verify29
+
+
+references30
+
+calls31J
+
+1
+12
+
+
+3
+4 Z
+
+5
+5768j¶
+M
+26G
+262719 *
+1 (28:5B$
+
+
+11
+12
+
+
+13
+28
+
+
+15
+29
+G
+8B
+8910 *
+1 (:5B$
+
+
+11
+12
+
+
+13
+14
+
+
+15
+16
+M
+17G
+171819 *
+1	 	(28:5B$
+
+
+11
+12
+
+
+13
+20
+
+
+15
+21
+M
+22G
+222319 *
+1 (28:5B$
+
+
+11
+12
+
+
+13
+24
+
+
+15
+25r5
+
+26830*
+1 (&
+
+262231*
+1 (&

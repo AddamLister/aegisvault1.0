@@ -1,0 +1,118 @@
+
+mcom.project.securevault.DatabaseManager#registerUser(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Zb
+XC:/Users/za_do/IdeaProjects/Aegis Vault/src/com/project/securevault/DatabaseManager.java ("9*!
+2 ("
+ (
+""*®
+3 (™–
+ (!	
+%6int"+java.sql.PreparedStatement#executeUpdate()I*A
+
+__unknown_file (%
+#
+pstmtjava.sql.PreparedStatement2executeUpdate()*
+2*§
+4 (’
+ ($
+
+%5void":java.sql.PreparedStatement#setString(ILjava/lang/String;)V*A
+
+__unknown_file (%
+#
+pstmtjava.sql.PreparedStatement* 
+
+__unknown_file (2*6
+
+__unknown_file (
+
+saltjava.lang.String2setString(ILjava/lang/String;)*
+3*§
+5 (’
+ ($
+
+%4void":java.sql.PreparedStatement#setString(ILjava/lang/String;)V*A
+
+__unknown_file (%
+#
+pstmtjava.sql.PreparedStatement* 
+
+__unknown_file (2*6
+
+__unknown_file (
+
+hashjava.lang.String2setString(ILjava/lang/String;)*
+4*¤
+6A (uw
+u
+A (u#
+pstmtjava.sql.PreparedStatement"__id*>
+
+__unknown_file ("
+ 
+%2java.sql.PreparedStatement–“
+ ((
+
+%3void":java.sql.PreparedStatement#setString(ILjava/lang/String;)V*A
+
+__unknown_file (%
+#
+pstmtjava.sql.PreparedStatement* 
+
+__unknown_file (2*:
+
+__unknown_file (
+
+usernamejava.lang.String2setString(ILjava/lang/String;)*
+5*œ
+7 (?h
+f
+ (?
+connjava.sql.Connection"__id*7
+
+__unknown_file (
+
+%1java.sql.Connectionš
+[ (u 
+%2java.sql.PreparedStatement"Tjava.sql.Connection#prepareStatement(Ljava/lang/String;)Ljava/sql/PreparedStatement;*9
+
+__unknown_file (
+
+connjava.sql.Connection*5
+
+__unknown_file (
+
+sqljava.lang.String2$prepareStatement(Ljava/lang/String;)*
+6*à
+8 (,d
+b
+; (>
+%0java.lang.String"__id*8
+
+__unknown_file (
+jdbc:sqlite:secureapp.dbå
+â
+ (?
+%1java.sql.Connection"Mjava.sql.DriverManager#getConnection(Ljava/lang/String;)Ljava/sql/Connection;*6
+
+__unknown_file ("
+java.sql.DriverManager*4
+
+__unknown_file (
+
+%0java.lang.String*
+7*¡
+9 (UŒ
+‰
+ (V
+sqljava.lang.String"__id*^
+
+__unknown_file (B@
+>INSERT INTO users(username, password_hash, salt) VALUES(?,?,?)*
+8:(
+  (0
+usernamejava.lang.String:$
+1 (=
+hashjava.lang.String:$
+> (I
+saltjava.lang.StringB+)
+'com.project.securevault.DatabaseManagerHX

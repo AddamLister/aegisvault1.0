@@ -305,7 +305,11 @@ public class SecureFileApp extends Application {
         });
 
         dialogPane.setHeader(alertTitleBar);
-        dialogPane.setContentText(content);
+        
+        Label contentLabel = new Label(content);
+        contentLabel.setWrapText(true);
+        contentLabel.setMinHeight(Region.USE_PREF_SIZE);
+        dialogPane.setContent(contentLabel);
 
         try {
             String css = getClass().getResource("/resources/style.css").toExternalForm();
@@ -866,14 +870,22 @@ public class SecureFileApp extends Application {
 
             try {
                 List<String> lines = Files.readAllLines(logFile.toPath(), StandardCharsets.UTF_8);
-                int start = Math.max(0, lines.size() - 5);
-                for (int i = lines.size() - 1; i >= start; i--) {
+                for (int i = lines.size() - 1; i >= 0; i--) {
                     String[] parts = lines.get(i).split(" \\| ");
                     if (parts.length >= 3) {
-                        String timestamp = parts[0].length() >= 19
-                                ? parts[0].substring(0, 19) : parts[0];
-                        String action = parts[2].replace("Action: ", "");
-                        activityData.add(new ActivityLog(timestamp, action));
+                        String userPart = parts[1].replace("User: ", "").trim();
+                        if (currentUser != null && userPart.equals(currentUser)) {
+                            String timestamp = parts[0].length() >= 19
+                                    ? parts[0].substring(0, 19) : parts[0];
+                            try {
+                                java.time.LocalDateTime dt = java.time.LocalDateTime.parse(timestamp);
+                                timestamp = dt.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy hh:mm a"));
+                            } catch (Exception ignored) {
+                                timestamp = timestamp.replace("T", " ");
+                            }
+                            String action = parts[2].replace("Action: ", "");
+                            activityData.add(new ActivityLog(timestamp, action));
+                        }
                     }
                 }
             } catch (IOException e) {

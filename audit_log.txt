@@ -271,3 +271,81 @@
 2026-06-01T11:43:40 | User: alice | Action: FILE_ENCRYPTED_AND_WIPED: SOFTSECT REPORT Finalized_2.pdf
 2026-06-01T11:43:51 | User: alice | Action: FILE_DECRYPTED: SOFTSECT REPORT Finalized_2.pdf.enc
 2026-06-01T11:44:13 | User: alice | Action: LOGOUT
+2026-06-07T23:16:17 | User: test | Action: REGISTER_SUCCESS
+2026-06-07T23:16:26 | User: test | Action: LOGIN_SUCCESS
+2026-06-07T23:16:56 | User: test | Action: LOGOUT
+2026-06-07T23:19:40 | User: yams | Action: REGISTER_SUCCESS
+2026-06-07T23:19:47 | User: yams | Action: LOGIN_SUCCESS
+2026-06-07T23:19:58 | User: yams | Action: LOGOUT
+2026-06-07T23:20:02 | User: admin | Action: LOGIN_FAILED
+2026-06-07T23:20:09 | User: alice | Action: LOGIN_SUCCESS
+2026-06-07T23:20:12 | User: alice | Action: LOGOUT
+2026-06-07T23:20:26 | User: alice | Action: LOGIN_SUCCESS
+2026-06-07T23:24:54 | User: alice | Action: LOGIN_SUCCESS
+2026-06-07T23:25:16 | User: alice | Action: FILE_ENCRYPTED_AND_WIPED: document1.pdf
+2026-06-07T23:25:23 | User: alice | Action: FILE_DECRYPTED: document1.pdf.enc
+2026-06-07T23:25:26 | User: alice | Action: LOGOUT
+2026-06-07T23:25:35 | User: test | Action: LOGIN_SUCCESS
+2026-06-07T23:25:45 | User: test | Action: LOGOUT
+2026-06-07T23:26:06 | User: new_user | Action: REGISTER_SUCCESS
+2026-06-07T23:26:20 | User: new_user | Action: LOGIN_SUCCESS
+2026-06-07T23:26:33 | User: new_user | Action: LOGOUT
+2026-06-07T23:26:36 | User: alice | Action: LOGIN_SUCCESS
+2026-06-07T23:26:42 | User: alice | Action: LOGOUT
+2026-06-07T23:26:44 | User: alice | Action: LOGIN_SUCCESS
+2026-06-07T23:29:06 | User: alice | Action: LOGIN_SUCCESS
+2026-06-07T23:31:35 | User: alice | Action: LOGIN_SUCCESS
+2026-06-07T23:44:43 | User: alice | Action: LOGOUT
+2026-06-08T00:54:41 | User: alice | Action: LOGIN_SUCCESS
+2026-06-08T00:57:20 | User: alice | Action: FILE_ENCRYPTED_AND_WIPED: super_confidential_file.txt
+2026-06-08T00:57:53 | User: alice | Action: FILE_DECRYPTED: super_confidential_file.txt.enc
+2026-06-08T00:58:06 | User: alice | Action: LOGOUT
+2026-06-08T01:10:32 | User: alice | Action: LOGIN_SUCCESS
+2026-06-08T01:11:13 | User: alice | Action: LOGOUT
+2026-06-08T01:11:16 | User: alice | Action: LOGIN_SUCCESS
+2026-06-08T01:53:42 | User: test_user | Action: REGISTER_SUCCESS
+2026-06-08T01:54:07 | User: test_user | Action: LOGIN_SUCCESS
+2026-06-08T01:54:54 | User: test_user | Action: FILE_ENCRYPTED_AND_WIPED: super_confidential_file.txt
+2026-06-08T01:55:43 | User: test_user | Action: TAMPER_ATTEMPT_DETECTED: super_confidential_file.txt.enc
+2026-06-08T01:56:10 | User: test_user | Action: TAMPER_ATTEMPT_DETECTED: super_confidential_file.txt.enc
+2026-06-08T01:56:12 | User: test_user | Action: LOGOUT
+2026-06-08T01:58:00 | User: test_user | Action: LOGIN_SUCCESS
+2026-06-08T01:58:15 | User: test_user | Action: TAMPER_ATTEMPT_DETECTED: super_confidential_file.txt.enc
+2026-06-08T01:59:11 | User: test_user | Action: TAMPER_ATTEMPT_DETECTED: super_confidential_file.txt.enc
+2026-06-08T01:59:17 | User: test_user | Action: LOGOUT
+2026-06-08T02:00:24 | User: test_user | Action: LOGIN_SUCCESS
+2026-06-08T02:00:43 | User: test_user | Action: TAMPER_ATTEMPT_DETECTED: super_confidential_file.txt.enc
+2026-06-08T02:00:59 | User: test_user | Action: TAMPER_ATTEMPT_DETECTED: super_confidential_file.txt.enc
+2026-06-08T02:01:05 | User: test_user | Action: TAMPER_ATTEMPT_DETECTED: super_confidential_file.txt.enc
+2026-06-08T02:01:24 | User: test_user | Action: LOGOUT
+2026-06-08T02:08:09 | User: test_user | Action: REGISTER_SUCCESS
+2026-06-08T02:08:35 | User: test_user | Action: LOGIN_SUCCESS
+2026-06-08T02:08:52 | User: test_user | Action: LOGOUT
+2026-06-08T02:10:09 | User: testuser123 | Action: REGISTER_SUCCESS
+2026-06-08T02:10:37 | User: testuser123 | Action: LOGIN_SUCCESS
+2026-06-08T02:11:38 | User: testuser123 | Action: LOGOUT
+2026-06-08T02:12:17 | User: testuser123 | Action: LOGIN_SUCCESS
+2026-06-08T02:12:20 | User: testuser123 | Action: TAMPER_ATTEMPT_DETECTED: super_confidential_file.txt.enc
+2026-06-08T02:12:28 | User: testuser123 | Action: TAMPER_ATTEMPT_DETECTED: super_confidential_file.txt.enc
+2026-06-08T02:13:09 | User: testuser123 | Action: LOGOUT
+2026-06-08T02:13:29 | User: test | Action: REGISTER_SUCCESS
+2026-06-08T02:13:33 | User: test | Action: LOGIN_SUCCESS
+2026-06-08T02:13:36 | User: test | Action: LOGOUT
+2026-06-08T02:16:13 | User: test | Action: REGISTER_SUCCESS
+2026-06-08T02:16:36 | User: test | Action: LOGIN_SUCCESS
+2026-06-08T02:17:38 | User: test | Action: FILE_ENCRYPTED_AND_WIPED: super confidential file.txt
+2026-06-08T02:18:23 | User: test | Action: TAMPER_ATTEMPT_DETECTED: super confidential file.txt.enc
+2026-06-08T02:18:31 | User: test | Action: FILE_ENCRYPTED_AND_WIPED: super confidential file.txt.enc
+2026-06-08T02:18:43 | User: test | Action: FILE_ENCRYPTED_AND_WIPED: super confidential file.txt.enc.enc
+2026-06-08T02:18:47 | User: test | Action: FILE_DECRYPTED: super confidential file.txt.enc.enc.enc
+2026-06-08T02:18:58 | User: test | Action: FILE_DECRYPTED: super confidential file.txt
+2026-06-08T02:19:03 | User: test | Action: FILE_DECRYPTED: super confidential file.txt
+2026-06-08T02:19:21 | User: test | Action: LOGOUT
+2026-06-08T02:20:47 | User: test | Action: LOGIN_SUCCESS
+2026-06-08T02:21:10 | User: test | Action: LOGOUT
+2026-06-08T02:22:49 | User: test | Action: LOGIN_SUCCESS
+2026-06-08T02:23:51 | User: test | Action: FILE_ENCRYPTED_AND_WIPED: super confidential file.txt
+2026-06-08T02:24:28 | User: test | Action: FILE_ENCRYPTED_AND_WIPED: super confidential file.txt.enc
+2026-06-08T02:24:59 | User: test | Action: TAMPER_ATTEMPT_DETECTED: super confidential file.txt.enc.enc
+2026-06-08T02:25:16 | User: test | Action: FILE_DECRYPTED: super confidential file.txt.enc.enc
+2026-06-08T02:25:26 | User: test | Action: FILE_DECRYPTED: super confidential file.txt
